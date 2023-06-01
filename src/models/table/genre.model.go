@@ -1,6 +1,8 @@
 package models
 
 type GenreModel struct {
-	BaseModel
+	BaseModelID
 	Name string `json:"name" gorm:"unique" validate:"required"`
+	BaseModelAudit
+
 }

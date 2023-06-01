@@ -2,13 +2,14 @@ package database
 
 import (
 	"github.com/rpratama-dev/mymovie/src/configs"
+	models "github.com/rpratama-dev/mymovie/src/models/table"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var Conn *gorm.DB
 
-func NewDB() (bool) {
+func StartDB() (bool) {
 	dsn := "host=" + configs.Env.DBHost +
 		" port=" + configs.Env.DBPort +
 		" dbname=" + configs.Env.DBName +
@@ -23,6 +24,6 @@ func NewDB() (bool) {
 	return true
 }
 
-func test() {
-
+func Migrate() {
+	Conn.AutoMigrate(&models.User{})
 }

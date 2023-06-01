@@ -5,6 +5,7 @@ import (
 	"github.com/rpratama-dev/mymovie/src/controllers/v1"
 )
 
-func Group(route *echo.Group)  {
+func UserRouter(route *echo.Group)  {
 	route.GET("", controllers.UserShow)
+	route.POST("", controllers.AuthSignUp)
 }

@@ -1,8 +1,9 @@
 package models
 
 type Artist struct {
-	BaseModel
+	BaseModelID	
 	Code string `json:"code" validate:"required" gorm:"unique"`
 	Name string `json:"name"`
 	Poster string `json:"poster"`
+	BaseModelAudit
 }

@@ -1,7 +1,8 @@
 package models
 
 type ProductionCountry struct {
-	BaseModel
+	BaseModelID
 	Code string `json:"code" gorm:"unique"`
 	Name string `json:"name"`
+	BaseModelAudit
 }
