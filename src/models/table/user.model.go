@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/rpratama-dev/mymovie/src/services/database"
 	"github.com/rpratama-dev/mymovie/src/utils"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -19,6 +19,11 @@ type BaseUser struct {
 	Email        string `json:"email" form:"email" validate:"required,email" gorm:"unique"`
 	PhoneNumber  string `json:"phone_number" form:"phone_number" validate:"required,min=10,phone_number" gorm:"unique"`
 	Password     string `json:"password" form:"password" validate:"required,min=8,strong_password"`
+}
+
+type UserLogin struct {
+	Email string `json:"email" form:"email" validate:"required,email"`
+	Password string `json:"password" form:"password" validate:"required"`
 }
 
 type UserPayload struct {
@@ -34,31 +39,28 @@ type User struct {
 	BaseModelAudit
 }
 
-type ErrorResponse struct {
-	Field string `json:"field"`
-	Error string `json:"error"`
+func (u *UserLogin) Validate() []utils.ErrorResponse {
+	validate := validator.New()
+	err := validate.Struct(u)
+	if err != nil {
+		return utils.ParseErrors(err.(validator.ValidationErrors))
+	}
+	return nil
 }
 
-func (u *UserPayload) Validate() []ErrorResponse {
+func (u *UserLogin) IsPasswordMatch(hashedPassword string) bool  {
+	return utils.IsPasswordMatch(hashedPassword, u.Password)
+}
+
+func (u *UserPayload) Validate() []utils.ErrorResponse {
 	validate := validator.New()
 	validate.RegisterValidation("phone_number", utils.ValidatePhoneNumber)
 	validate.RegisterValidation("strong_password", utils.ValidateStrongPassword)
 
 	err := validate.Struct(u)
 	if err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		errorResponses := make([]ErrorResponse, len(validationErrors))
-
-		for i, ve := range validationErrors {
-			errorResponses[i] = ErrorResponse{
-				Field: ve.StructField(),
-				Error: strings.Split(ve.Error(), "Error:")[1],
-			}
-		}
-
-		return errorResponses
+		return utils.ParseErrors(err.(validator.ValidationErrors))
 	}
-
 	return nil
 }
 
@@ -70,16 +72,19 @@ func (u *User) Append(user UserPayload) {
 	u.Password = user.Password;
 }
 
+func (u *User) FindByEmail() error  {
+	err := database.Conn.First(&u, "email = ?", strings.ToLower(u.Email)).Error
+	return err
+
+}
+
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-	// Generate a hashed password	
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-	if err != nil {
-		panic(err)
-	}
-	u.CreatedBy = &u.ID;
-	u.CreatedName = u.FullName;
-	u.CreatedFrom = "System Registration";
-	u.Password = string(hashedPassword)
+	// Generate a hashed password
+	u.CreatedBy = &u.ID
+	u.CreatedName = u.FullName
+	u.CreatedFrom = "System Registration"
+	u.Email = strings.ToLower(u.Email)
+	u.Password = utils.HashPassword(u.Password)
 	u.VerifiedToken = generateVerifiedToken()
   return
 }

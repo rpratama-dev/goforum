@@ -2,7 +2,6 @@ package database
 
 import (
 	"github.com/rpratama-dev/mymovie/src/configs"
-	models "github.com/rpratama-dev/mymovie/src/models/table"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -22,8 +21,4 @@ func StartDB() (bool) {
 	}
 	Conn = db
 	return true
-}
-
-func Migrate() {
-	Conn.AutoMigrate(&models.User{})
 }

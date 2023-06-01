@@ -7,6 +7,7 @@ import (
 	appMiddleware "github.com/rpratama-dev/mymovie/src/middleware"
 	"github.com/rpratama-dev/mymovie/src/routes"
 	"github.com/rpratama-dev/mymovie/src/services/database"
+	"github.com/rpratama-dev/mymovie/src/services/migration"
 	"github.com/rpratama-dev/mymovie/src/utils"
 )
 
@@ -14,7 +15,7 @@ func init()  {
 	utils.GenerateKeyPair()
 	configs.InitConfig()
 	database.StartDB()
-	database.Migrate()
+	migration.Migrate()
 }
 
 func main() {

@@ -26,16 +26,16 @@ type Claims struct {
 }
 
 // generateJWT generates a new JWT using the RS256 algorithm
-func GenerateJWT(claim ClaimPayload) (string, error) {
+func GenerateJWT(claim ClaimPayload) (string, *Claims, error) {
 	// Load the private key
 	privateKeyBytes := ReadFile(privateKeyPath)
 	if (privateKeyBytes == nil) {
-		return "", fmt.Errorf("failed to read private key file")
+		return "", nil, fmt.Errorf("failed to read private key file")
 	}
 
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyBytes)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse private key: %w", err)
+		return "", nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
 
 	// Create the JWT claims
@@ -55,10 +55,10 @@ func GenerateJWT(claim ClaimPayload) (string, error) {
 	// Sign the JWT token with the private key
 	tokenString, err := token.SignedString(privateKey)
 	if err != nil {
-		return "", fmt.Errorf("failed to sign JWT: %w", err);
+		return "", nil, fmt.Errorf("failed to sign JWT: %w", err);
 	}
 
-	return tokenString, nil
+	return tokenString, &claims, nil
 }
 
 // verifyJWT verifies and parses the JWT using the RS256 algorithm

@@ -2,10 +2,17 @@ package utils
 
 import (
 	"regexp"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/rpratama-dev/mymovie/src/variables"
 )
+
+
+type ErrorResponse struct {
+	Field string `json:"field"`
+	Error string `json:"error"`
+}
 
 func ValidatePhoneNumber(fl validator.FieldLevel) bool {
 
@@ -41,4 +48,15 @@ func ValidateStrongPassword(fl validator.FieldLevel) bool {
 	}
 
 	return true
+}
+
+func ParseErrors(validationErrors validator.ValidationErrors) []ErrorResponse {
+	errorResponses := make([]ErrorResponse, len(validationErrors))
+	for i, ve := range validationErrors {
+		errorResponses[i] = ErrorResponse{
+			Field: ve.StructField(),
+			Error: strings.Split(ve.Error(), "Error:")[1],
+		}
+	}
+	return errorResponses
 }
