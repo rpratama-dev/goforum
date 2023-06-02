@@ -38,7 +38,7 @@ func (s *Session) Append(payload SessionPayload)  {
 }
 
 func (s *Session) GetSessionById(id uuid.UUID) error  {
-	err := database.Conn.First(&s, id).Error
+	err := database.Conn.Preload("User").First(&s, id).Error
 	return err
 }
 

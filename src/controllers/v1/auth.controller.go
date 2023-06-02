@@ -108,11 +108,12 @@ func AuthSignIn(c echo.Context) error {
 }
 
 func AuthSignOut(c echo.Context) error  {
-	claims := c.Get("claims").(*utils.Claims)
+	// claims := c.Get("claims").(*utils.Claims)
+	session := c.Get("session").(*models.Session)
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Sign out success",
-		Data: claims,
+		Data: session,
 	})
 }
 
