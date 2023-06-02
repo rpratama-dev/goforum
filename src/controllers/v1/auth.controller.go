@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	httpModels "github.com/rpratama-dev/mymovie/src/models/http"
@@ -78,28 +77,27 @@ func AuthSignIn(c echo.Context) error {
 
 	// Create Session
 	var sessionPayload models.SessionPayload
-	sessionPayload.UserID = user.ID;
-	sessionPayload.IPAddress = c.RealIP();
-	sessionPayload.UserAgent = c.Request().UserAgent();
+	sessionPayload.UserID = user.ID
+	sessionPayload.IPAddress = c.RealIP()
+	sessionPayload.UserAgent = c.Request().UserAgent()
+	sessionPayload.FullName = user.FullName
 	var sessionModel models.Session
 	sessionModel.Append(sessionPayload)
 	database.Conn.Create(&sessionModel)
 
 	// Generate access token
 	var claim = utils.ClaimPayload{}
-	claim.Name = user.FullName;
-	claim.UserID = user.ID;
-	claim.SessionID = sessionModel.ID;
-	claim.UserName = user.Email;
-	claim.ExpiresAt =sessionModel.ExpiredAt.Unix()
-	token, claims, _ := utils.GenerateJWT(claim);
+	claim.Name = user.FullName
+	claim.UserID = user.ID
+	claim.SessionID = sessionModel.ID
+	claim.UserName = user.Email
+	claim.ExpiresAt = sessionModel.ExpiredAt.Unix()
+	token, _, _ := utils.GenerateJWT(claim)
 
 	// Convert Unix timestamp to time.Time in UTC
-	t := time.Unix(claims.ExpiresAt, 0).UTC()
-	response := map[string]string{
-		"access_token": token,
-		"expired_at": t.Format("2006-01-02T15:04:051Z"),
-	}
+	response := make(map[string]interface{})
+	response["access_token"] = token;
+	response["expired_at"] = sessionModel.ExpiredAt;
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Sign in success",

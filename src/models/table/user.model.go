@@ -14,11 +14,10 @@ import (
 )
 
 type BaseUser struct {
-	FullName     string `json:"full_name" form:"full_name" validate:"required"`
-	BirthDate    string `json:"birth_date" form:"birth_date" validate:"required,datetime=2006-01-02"`
-	Email        string `json:"email" form:"email" validate:"required,email" gorm:"unique"`
-	PhoneNumber  string `json:"phone_number" form:"phone_number" validate:"required,min=10,phone_number" gorm:"unique"`
-	Password     string `json:"password" form:"password" validate:"required,min=8,strong_password"`
+	FullName     string `json:"full_name" form:"full_name" validate:"required" gorm:"not null"`
+	BirthDate    string `json:"birth_date" form:"birth_date" validate:"required,datetime=2006-01-02" gorm:"type:date;not null"`
+	Email        string `json:"email" form:"email" validate:"required,email" gorm:"unique;not null"`
+	PhoneNumber  string `json:"phone_number" form:"phone_number" validate:"required,min=10,phone_number" gorm:"unique;not null"`
 }
 
 type UserLogin struct {
@@ -28,14 +27,16 @@ type UserLogin struct {
 
 type UserPayload struct {
 	BaseUser
+	Password     string `json:"password" form:"password" validate:"required,min=8,strong_password"`
 }
 
 type User struct {
 	BaseModelID
 	BaseUser
-	VerifiedToken string `json:"verified_token"` 
-	IsVerified bool `json:"is_verified"`
-	VerifiedAt *time.Time `json:"verified_at" gorm:"type:timestamp without time zone;default:null"` 
+	Password     	string 			`json:"-" validate:"required,min=8,strong_password" gorm:"not null"`
+	VerifiedToken string 			`json:"-"`
+	IsVerified 		bool 				`json:"is_verified"`
+	VerifiedAt 		*time.Time	`json:"verified_at" gorm:"type:timestamp without time zone;default:null"` 
 	BaseModelAudit
 }
 

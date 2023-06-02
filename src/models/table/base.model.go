@@ -14,15 +14,15 @@ type BaseModelID struct {
 type BaseModelAudit struct {
 	IsActive bool `json:"is_active"`
 	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp without time zone;"`
-	CreatedBy *uuid.UUID `json:"created_by" gorm:"type:uuid;default:null"`
+	CreatedBy *uuid.UUID `json:"-" gorm:"type:uuid;default:null"`
 	CreatedName string `json:"created_name" gorm:"default:null"`
-	CreatedFrom string `json:"created_from" gorm:"default:null"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"type:timestamp without time zone;"`
-	UpdatedBy *uuid.UUID `json:"updated_by" gorm:"type:uuid;default:null"`
-	UpdatedName string `json:"updated_name" gorm:"default:null"`
-	UpdatedFrom string `json:"updated_from" gorm:"default:null"`
-	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"type:timestamp without time zone;index;default:null"`
-	DeletedBy *uuid.UUID `json:"deleted_by" gorm:"type:uuid;default:null"`
-	DeletedName string `json:"deleted_name" gorm:"default:null"`
-	DeletedFrom string `json:"deleted_from" gorm:"default:null"`
+	CreatedFrom string `json:"-" gorm:"default:null"`
+	UpdatedAt time.Time `json:"-" gorm:"type:timestamp without time zone;"`
+	UpdatedBy *uuid.UUID `json:"-" gorm:"type:uuid;default:null"`
+	UpdatedName string `json:"-" gorm:"default:null"`
+	UpdatedFrom string `json:"-" gorm:"default:null"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"type:timestamp without time zone;index;default:null"`
+	DeletedBy *uuid.UUID `json:"-" gorm:"type:uuid;default:null"`
+	DeletedName string `json:"-" gorm:"default:null"`
+	DeletedFrom string `json:"-" gorm:"default:null"`
 }
