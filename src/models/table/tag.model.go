@@ -2,6 +2,6 @@ package models
 
 type Tag struct {
 	BaseModelID
-	Name						string
+	Name						string `json:"name" form:"name" gorm:"unique"`
 	BaseModelAudit
 }
