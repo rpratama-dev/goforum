@@ -8,7 +8,7 @@ import (
 )
 
 type BaseModelID struct {
-	ID uuid.UUID `json:"id" gorm:"type:uuid,default:uuid_generate_v4(),primaryKey"`
+	ID uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
 }
 
 type BaseModelAudit struct {
