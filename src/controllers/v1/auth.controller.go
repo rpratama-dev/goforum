@@ -45,12 +45,22 @@ func AuthSignIn(c echo.Context) error {
 		})
 	}
 
+	// Create Session
+	var sessionPayload models.SessionPayload
+	sessionPayload.UserID = user.ID;
+	sessionPayload.IPAddress = c.RealIP();
+	sessionPayload.UserAgent = c.Request().UserAgent();
+	var sessionModel models.Session
+	sessionModel.Append(sessionPayload)
+	database.Conn.Create(&sessionModel)
+
 	// Generate access token
 	var claim = utils.ClaimPayload{}
 	claim.Name = user.FullName;
 	claim.UserID = user.ID.String();
-	claim.SessionID = "test session id";
+	claim.SessionID = sessionModel.ID;
 	claim.UserName = user.Email;
+	claim.ExpiresAt =sessionModel.ExpiredAt.Unix()
 	token, claims, _ := utils.GenerateJWT(claim);
 
 	// Convert Unix timestamp to time.Time in UTC
@@ -79,7 +89,7 @@ func AuthSignUp(c echo.Context) error {
 		})
 	}
 
-	// Save model
+	// Save model user
 	var userModel = models.User{}
 	userModel.Append(userInput)
 	result := database.Conn.Create(&userModel)

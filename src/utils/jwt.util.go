@@ -5,16 +5,18 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 type BaseClaim struct {
 	Name  string `json:"name"`
 	UserID string   `json:"uid"`
-	SessionID string `json:"sid"`
+	SessionID uuid.UUID `json:"sid"`
 }
 
 type ClaimPayload struct {
 	UserName  string `json:"user_name"`
+	ExpiresAt int64  `json:"exp,omitempty"`
 	BaseClaim
 }
 
@@ -47,7 +49,7 @@ func GenerateJWT(claim ClaimPayload) (string, *Claims, error) {
 	claims.IssuedAt = time.Now().Unix();
 	claims.Issuer = "My Movie Company, PT";
 	claims.Subject = "My Movie App";
-	claims.ExpiresAt = time.Now().Add(1 * time.Hour).Unix();
+	claims.ExpiresAt = claim.ExpiresAt;
 
 	// Create the JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
