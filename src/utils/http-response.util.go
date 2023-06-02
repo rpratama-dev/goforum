@@ -1,21 +1,26 @@
 package utils
 
 import (
-	"net/http"
-
 	"github.com/labstack/echo/v4"
 	models "github.com/rpratama-dev/mymovie/src/models/http"
 )
 
-func PanicHandler(c echo.Context, data *interface{})  {
-	var errorData interface{}
-	if (data != nil) {
-		errorData = *data
-	}
+type PanicPayload struct {
+	Data	 			interface{}
+	Message			string
+	HttpStatus 	int
+}
+
+func PanicHandler(c echo.Context)  {
 	if r := recover(); r != nil {
+		pyd := r.(PanicPayload)
+		var errorData interface{}
+		if (pyd.Data != nil) {
+			errorData = pyd.Data
+		}
 		// Handle the panic here
-		c.JSON(http.StatusBadRequest, models.BaseResponse{
-			Message: r.(string),
+		c.JSON(pyd.HttpStatus, models.BaseResponse{
+			Message: pyd.Message,
 			Data: errorData,
 		})
 	}

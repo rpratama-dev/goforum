@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"strings"
 	"time"
 
@@ -14,26 +15,35 @@ const INVALID_SESSION = "Access Denied, token has invalid / expired"
 // Middleware function to check Bearer token and verify using JWT
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		defer utils.PanicHandler(c, nil)
+		defer utils.PanicHandler(c)
 		// Get the Authorization header value
 		authHeader := c.Request().Header.Get("Authorization")
 		// Check if the header value is empty or does not start with "Bearer "
 		authHeaders := strings.Split(authHeader, " ")
 		if (len(authHeaders) < 2 || authHeaders[0] != "Bearer" || len(strings.Split(authHeaders[1], ".")) < 3) {
-			panic("Access Denied, access token required")
+			panic(utils.PanicPayload{
+				Message: "Access Denied, access token required",
+				HttpStatus: http.StatusUnauthorized,
+			})
 		}
 
 		// Extract the token from the header value & Verify the token
 		claims, err := utils.VerifyJWT(authHeaders[1])
 		if err != nil {
-			panic(INVALID_SESSION)
+			panic(utils.PanicPayload{
+				Message: INVALID_SESSION,
+				HttpStatus: http.StatusUnauthorized,
+			})
 		}
 
 		// Retrieve session
 		var session models.Session
 		err = session.GetSessionById(claims.SessionID)
 		if err != nil {
-			panic(INVALID_SESSION)
+			panic(utils.PanicPayload{
+				Message: INVALID_SESSION,
+				HttpStatus: http.StatusUnauthorized,
+			})
 		}
 
 		// Check session expiration
@@ -42,17 +52,26 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			session.DeletedName = claims.Name;
 			session.DeletedFrom = "Auth Middleware";
 			session.SoftDelete()
-			panic(INVALID_SESSION)
+			panic(utils.PanicPayload{
+				Message: INVALID_SESSION,
+				HttpStatus: http.StatusUnauthorized,
+			})
 		}
 
 		// Make sure session still active
 		if (!session.IsActive) {
-			panic(INVALID_SESSION)
+			panic(utils.PanicPayload{
+				Message: INVALID_SESSION,
+				HttpStatus: http.StatusUnauthorized,
+			})
 		}
 
 		// Make sure user still active
 		if (!session.User.IsActive) {
-			panic("Your account inactive, please contact web administrator")
+			panic(utils.PanicPayload{
+				Message: "Your account inactive, please contact web administrator",
+				HttpStatus: http.StatusUnauthorized,
+			})
 		}
 
 		// Store the claims in the context for access in subsequent handlers
@@ -65,10 +84,13 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // Middleware function to check x-api-key and validate the api-key
 func ApiKeyMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		defer utils.PanicHandler(c, nil)
+		defer utils.PanicHandler(c)
 		apiKey := c.Request().Header.Get("x-api-key")
 		if (apiKey == "") {
-			panic("Please provide API Key")
+			panic(utils.PanicPayload{
+				Message: "Please provide API Key",
+				HttpStatus: http.StatusUnauthorized,
+			})
 		}
 		c.Set("apiKey", &apiKey)
 		return next(c)

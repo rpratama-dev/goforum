@@ -12,7 +12,8 @@ import (
 )
 
 func UserQuestionIndex(c echo.Context) error {
-	defer utils.PanicHandler(c, nil)
+	defer utils.PanicHandler(c)
+
 	session := c.Get("session").(*models.Session)
 	var questions []models.Question
 	result := database.Conn.Preload("Tags").Preload("User").Where(map[string]interface{}{
@@ -21,7 +22,10 @@ func UserQuestionIndex(c echo.Context) error {
 	}).Find(&questions)
 
 	if (result.Error != nil) {
-		panic(result.Error.Error())
+		panic(utils.PanicPayload{
+			Message: result.Error.Error(),
+			HttpStatus: http.StatusInternalServerError,
+		})
 	}
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
@@ -31,8 +35,7 @@ func UserQuestionIndex(c echo.Context) error {
 }
 
 func UserQuestionStore(c echo.Context) error {
-	var errorData interface{}
-	defer utils.PanicHandler(c, &errorData)
+	defer utils.PanicHandler(c)
 	session := c.Get("session").(*models.Session)
 	// Bind user input
 	var questionPayload models.QuestionPayload
@@ -41,8 +44,11 @@ func UserQuestionStore(c echo.Context) error {
 	// Start validation input
 	errValidation := questionPayload.Validate()
 	if (errValidation != nil) {
-		errorData = errValidation
-		panic("Validation Error")
+		panic(utils.PanicPayload{
+			Message: "Validation Error",
+			Data: errValidation,
+			HttpStatus: http.StatusBadRequest,
+		})
 	}
 
 	// Validate input tags is exist
@@ -53,7 +59,10 @@ func UserQuestionStore(c echo.Context) error {
 		if (resultTag.Error != nil) {
 			message = resultTag.Error.Error()
 		}
-		panic(message)
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusBadRequest,
+		})
 	}
 
 	// Populate & create model
@@ -70,7 +79,10 @@ func UserQuestionStore(c echo.Context) error {
 
 	// Check if failed to create question
 	if (result.Error != nil) {
-		panic(result.Error.Error())
+		panic(utils.PanicPayload{
+			Message: result.Error.Error(),
+			HttpStatus: http.StatusInternalServerError,
+		})
 	}
 
 	// Output the created question with tags & user
@@ -84,11 +96,14 @@ func UserQuestionStore(c echo.Context) error {
 }
 
 func UserQuestionShow(c echo.Context) error {
-	defer utils.PanicHandler(c, nil)
+	defer utils.PanicHandler(c)
 	session := c.Get("session").(*models.Session)
 	_, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		panic("Param must be a uuid")
+		panic(utils.PanicPayload{
+			Message: "Param must be a uuid",
+			HttpStatus: http.StatusBadRequest,
+		})
 	}
 
 	var question models.Question
@@ -100,7 +115,10 @@ func UserQuestionShow(c echo.Context) error {
 
 	// Check if failed to create question
 	if (result.Error != nil) {
-		panic(result.Error.Error())
+		panic(utils.PanicPayload{
+			Message: result.Error.Error(),
+			HttpStatus: http.StatusInternalServerError,
+		})
 	}
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
@@ -110,14 +128,17 @@ func UserQuestionShow(c echo.Context) error {
 }
 
 func UserQuestionUpdate(c echo.Context) error {
-	var errorData interface{}
-	defer utils.PanicHandler(c, &errorData)
+	defer utils.PanicHandler(c)
 	session := c.Get("session").(*models.Session)
 	apiKey := c.Get("apiKey").(*string)
 	questionId := c.Param("id")
 	_, err := uuid.Parse(questionId)
 	if err != nil {
-		panic("Param must be a uuid")
+		panic(utils.PanicPayload{
+			Message: "Param must be a uuid",
+			HttpStatus: http.StatusInternalServerError,
+		})
+		
 	}
 
 	// Bind user input
@@ -132,14 +153,20 @@ func UserQuestionUpdate(c echo.Context) error {
 		"is_active": true,
 	}).First(&question)
 	if (result.Error != nil) {
-		panic(result.Error.Error())
+		panic(utils.PanicPayload{
+			Message: result.Error.Error(),
+			HttpStatus: http.StatusInternalServerError,
+		})
 	}
 
 	// Start validation input
 	errValidation := questionPayload.Validate()
 	if (errValidation != nil) {
-		errorData = errValidation
-		panic("Validation Error")
+		panic(utils.PanicPayload{
+			Message: "Validation Error",
+			Data: errValidation,
+			HttpStatus: http.StatusBadRequest,
+		})
 	}
 
 	// Validate input tags is exist
@@ -150,7 +177,10 @@ func UserQuestionUpdate(c echo.Context) error {
 		if (resultTag.Error != nil) {
 			message = resultTag.Error.Error()
 		}
-		panic(message)
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusBadRequest,
+		})
 	}
 
 	// Remove the existing tags from the question
@@ -175,13 +205,16 @@ func UserQuestionUpdate(c echo.Context) error {
 }
 
 func UserQuestionDestroy(c echo.Context) error {
-	defer utils.PanicHandler(c, nil)
+	defer utils.PanicHandler(c)
 	session := c.Get("session").(*models.Session)
 	apiKey := c.Get("apiKey").(*string)
 	questionId := c.Param("id")
 	_, err := uuid.Parse(questionId)
 	if err != nil {
-		panic("Param must be a uuid")
+		panic(utils.PanicPayload{
+			Message: "Param must be a uuid",
+			HttpStatus: http.StatusBadRequest,
+		})
 	}
 
 	// Find Question
@@ -192,7 +225,10 @@ func UserQuestionDestroy(c echo.Context) error {
 		"is_active": true,
 	}).First(&question)
 	if (result.Error != nil) {
-		panic(result.Error.Error())
+		panic(utils.PanicPayload{
+			Message: result.Error.Error(),
+			HttpStatus: http.StatusInternalServerError,
+		})
 	}
 
 	// Delete Question
@@ -202,7 +238,10 @@ func UserQuestionDestroy(c echo.Context) error {
 	question.DeletedFrom = *apiKey
 	err = question.SoftDelete()
 	if (err != nil) {
-		panic(err.Error())
+		panic(utils.PanicPayload{
+			Message: err.Error(),
+			HttpStatus: http.StatusInternalServerError,
+		})
 	}
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
