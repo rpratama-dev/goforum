@@ -10,7 +10,7 @@ import (
 
 type BaseClaim struct {
 	Name  string `json:"name"`
-	UserID string   `json:"uid"`
+	UserID uuid.UUID   `json:"uid"`
 	SessionID uuid.UUID `json:"sid"`
 }
 

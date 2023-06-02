@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rpratama-dev/mymovie/src/services/database"
+	"gorm.io/gorm"
 )
 
 type BaseSession struct {
@@ -33,4 +35,30 @@ func (s *Session) Append(payload SessionPayload)  {
 	s.CreatedBy = &payload.UserID
 	s.CreatedName = payload.FullName
 	s.IsActive = true
+}
+
+func (s *Session) GetSessionById(id uuid.UUID) error  {
+	err := database.Conn.First(&s, id).Error
+	return err
+}
+
+func (s *Session) UpdateAll()  {
+	// User's ID is `111`:
+	// database.Conn.Model(&s).Select(fields).Updates(s)
+}
+
+func (s *Session) Update(fields ...string) error {
+	return database.Conn.Model(&s).Select(fields).Updates(s).Error
+}
+
+func (s *Session) SoftDelete() error {
+	s.IsActive = false
+	s.DeletedAt = gorm.DeletedAt{Time: time.Now(), Valid: true};
+	return database.Conn.Model(&s).Select(
+		"is_active",
+		"deleted_by",
+		"deleted_at",
+		"deleted_name",
+		"deleted_from",
+	).Updates(s).Error
 }

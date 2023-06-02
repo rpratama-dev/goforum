@@ -88,7 +88,7 @@ func AuthSignIn(c echo.Context) error {
 	// Generate access token
 	var claim = utils.ClaimPayload{}
 	claim.Name = user.FullName;
-	claim.UserID = user.ID.String();
+	claim.UserID = user.ID;
 	claim.SessionID = sessionModel.ID;
 	claim.UserName = user.Email;
 	claim.ExpiresAt =sessionModel.ExpiredAt.Unix()
