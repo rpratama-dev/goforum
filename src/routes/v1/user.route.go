@@ -2,10 +2,9 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/rpratama-dev/mymovie/src/controllers/v1"
+	"github.com/rpratama-dev/mymovie/src/routes/v1/user"
 )
 
 func UserRouter(route *echo.Group)  {
-	route.GET("", controllers.UserShow)
-	route.POST("", controllers.AuthSignUp)
+	user.QuestionRouter(route.Group("/questions"))
 }
