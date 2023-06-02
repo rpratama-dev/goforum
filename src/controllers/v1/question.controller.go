@@ -12,7 +12,7 @@ import (
 )
 
 func UserQuestionIndex(c echo.Context) error {
-	defer utils.PanicHandler(c)
+	defer utils.DeferHandler(c)
 
 	session := c.Get("session").(*models.Session)
 	var questions []models.Question
@@ -35,7 +35,7 @@ func UserQuestionIndex(c echo.Context) error {
 }
 
 func UserQuestionStore(c echo.Context) error {
-	defer utils.PanicHandler(c)
+	defer utils.DeferHandler(c)
 	session := c.Get("session").(*models.Session)
 	// Bind user input
 	var questionPayload models.QuestionPayload
@@ -96,7 +96,7 @@ func UserQuestionStore(c echo.Context) error {
 }
 
 func UserQuestionShow(c echo.Context) error {
-	defer utils.PanicHandler(c)
+	defer utils.DeferHandler(c)
 	session := c.Get("session").(*models.Session)
 	_, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -128,7 +128,7 @@ func UserQuestionShow(c echo.Context) error {
 }
 
 func UserQuestionUpdate(c echo.Context) error {
-	defer utils.PanicHandler(c)
+	defer utils.DeferHandler(c)
 	session := c.Get("session").(*models.Session)
 	apiKey := c.Get("apiKey").(*string)
 	questionId := c.Param("id")
@@ -138,7 +138,6 @@ func UserQuestionUpdate(c echo.Context) error {
 			Message: "Param must be a uuid",
 			HttpStatus: http.StatusInternalServerError,
 		})
-		
 	}
 
 	// Bind user input
@@ -205,7 +204,7 @@ func UserQuestionUpdate(c echo.Context) error {
 }
 
 func UserQuestionDestroy(c echo.Context) error {
-	defer utils.PanicHandler(c)
+	defer utils.DeferHandler(c)
 	session := c.Get("session").(*models.Session)
 	apiKey := c.Get("apiKey").(*string)
 	questionId := c.Param("id")

@@ -15,7 +15,7 @@ const INVALID_SESSION = "Access Denied, token has invalid / expired"
 // Middleware function to check Bearer token and verify using JWT
 func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		defer utils.PanicHandler(c)
+		defer utils.DeferHandler(c)
 		// Get the Authorization header value
 		authHeader := c.Request().Header.Get("Authorization")
 		// Check if the header value is empty or does not start with "Bearer "
@@ -84,7 +84,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // Middleware function to check x-api-key and validate the api-key
 func ApiKeyMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		defer utils.PanicHandler(c)
+		defer utils.DeferHandler(c)
 		apiKey := c.Request().Header.Get("x-api-key")
 		if (apiKey == "") {
 			panic(utils.PanicPayload{

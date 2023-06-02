@@ -12,15 +12,17 @@ import (
 )
 
 func AuthSignUp(c echo.Context) error {
+	defer utils.DeferHandler(c)
 	var userInput models.UserRegister
 	c.Bind(&userInput)
 
 	// Start Validation
 	errValidation := userInput.Validate()
 	if (errValidation != nil) {
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
+			HttpStatus: http.StatusBadRequest,
 		})
 	}
 
@@ -29,9 +31,9 @@ func AuthSignUp(c echo.Context) error {
 	userModel.Append(userInput)
 	result := database.Conn.Create(&userModel)
 	if result.Error != nil {
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
-			Data: nil,
+			HttpStatus: http.StatusInternalServerError,
 		})
 	}
 
@@ -43,6 +45,7 @@ func AuthSignUp(c echo.Context) error {
 }
 
 func AuthSignIn(c echo.Context) error {
+	defer utils.DeferHandler(c)
 	// Bind input user
 	var userInput models.UserLogin
 	c.Bind(&userInput)
@@ -50,9 +53,9 @@ func AuthSignIn(c echo.Context) error {
 	// Start Validation
 	errValidation := userInput.Validate()
 	if (errValidation != nil) {
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+		panic(utils.PanicPayload{
 			Message: "Validation Error",
-			Data: errValidation,
+			HttpStatus: http.StatusBadRequest,
 		})
 	}
 	
@@ -61,18 +64,18 @@ func AuthSignIn(c echo.Context) error {
 	user.Email = userInput.Email 
 	err := user.GetByEmail()
 	if (err != nil) {
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+		panic(utils.PanicPayload{
 			Message: "Invalid email / password",
-			Data: nil,
+			HttpStatus: http.StatusBadRequest,
 		})
 	}
 
 	// Check if password is match
 	isMatch := userInput.IsPasswordMatch(user.Password)
 	if (!isMatch) {
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
-			Message: "Invalid email / password b",
-			Data: nil,
+		panic(utils.PanicPayload{
+			Message: "Invalid email / password",
+			HttpStatus: http.StatusBadRequest,
 		})
 	}
 
@@ -82,9 +85,9 @@ func AuthSignIn(c echo.Context) error {
 		if (!user.IsVerified) {
 			message = "Please verified you'r account first, before try sign-in"
 		}
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+		panic(utils.PanicPayload{
 			Message: message,
-			Data: nil,
+			HttpStatus: http.StatusBadRequest,
 		})
 	}
 
@@ -119,6 +122,7 @@ func AuthSignIn(c echo.Context) error {
 }
 
 func AuthSignOut(c echo.Context) error  {
+	defer utils.DeferHandler(c)
 	session := c.Get("session").(*models.Session)
 	session.DeletedBy = &session.User.ID;
 	session.DeletedName = session.User.FullName;
@@ -132,14 +136,14 @@ func AuthSignOut(c echo.Context) error  {
 }
 
 func AuthVerify(c echo.Context) error {
+	defer utils.DeferHandler(c)
 	verifyToken := c.Param("token")
 	var user models.User
 	err := user.GetByToken(verifyToken);
 	if (err != nil) {
-		// Return response
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+		panic(utils.PanicPayload{
 			Message: "Failed to verified user registration",
-			Data: nil,
+			HttpStatus: http.StatusBadRequest,
 		})
 	}
 
