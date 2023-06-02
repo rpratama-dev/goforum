@@ -38,7 +38,6 @@ func GenerateKeyPair() (bool) {
 	isPublicExist := isFileExist(privateKeyPath)
 
 	if (isPrivateExist && isPublicExist) {
-		fmt.Println("Public & Private key is exist")
 		return true;
 	}
 

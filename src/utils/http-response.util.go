@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"fmt"
-
 	"github.com/labstack/echo/v4"
 	models "github.com/rpratama-dev/mymovie/src/models/http"
 )
@@ -26,5 +24,4 @@ func DeferHandler(c echo.Context)  {
 			Data: errorData,
 		})
 	}
-	fmt.Println("Exec last")
 }
