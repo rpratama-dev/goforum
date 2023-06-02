@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/rpratama-dev/mymovie/src/variables"
 )
 
@@ -15,7 +16,6 @@ type ErrorResponse struct {
 }
 
 func ValidatePhoneNumber(fl validator.FieldLevel) bool {
-
 	phoneNumber := fl.Field().String()
 	match, _ := regexp.MatchString(variables.REGEXP_PHONE_NUMBER, phoneNumber)
 	return match
@@ -47,6 +47,17 @@ func ValidateStrongPassword(fl validator.FieldLevel) bool {
 		return false
 	}
 
+	return true
+}
+
+func ValidateUUIDs(fl validator.FieldLevel) bool {
+	slice := fl.Field().Interface().([]string)
+	for _, str := range slice {
+		_, err := uuid.Parse(str)
+		if err != nil {
+			return false
+		}
+	}
 	return true
 }
 

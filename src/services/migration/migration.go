@@ -11,7 +11,6 @@ func Migrate() {
 		&models.Session{},
 		&models.Tag{},
 		&models.Question{},
-		&models.QuestionTag{},
 		&models.QuestionComment{},
 		&models.QuestionVote{},
 		&models.Answer{},

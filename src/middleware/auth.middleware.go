@@ -80,3 +80,18 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+// Middleware function to check x-api-key and validate the api-key
+func ApiKeyMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		apiKey := c.Request().Header.Get("x-api-key")
+		if (apiKey == "") {
+			return c.JSON(http.StatusUnauthorized, httpModels.BaseResponse{
+				Message: "Please provide API Key",
+				Data: nil,
+			})
+		}
+		c.Set("apiKey", &apiKey)
+		return next(c)
+	}
+}

@@ -7,7 +7,7 @@ import (
 
 func RegisterRoutes(g *echo.Group) {
 	AuthRouter(g.Group("/auth"));
-	g.Use(middleware.AuthMiddleware)
+	g.Use(middleware.ApiKeyMiddleWare, middleware.AuthMiddleware)
 	UserRouter(g.Group("/users"));
 	TagRouter(g.Group("/tags"));
 }

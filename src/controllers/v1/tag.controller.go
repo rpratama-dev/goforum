@@ -21,20 +21,22 @@ func TagIndex(c echo.Context) error {
 }
 
 func TagStore(c echo.Context) error {
+	var tagPayload models.TagPayload
+	c.Bind(&tagPayload)
+
 	var tag models.Tag
-	c.Bind(&tag)
 	session := c.Get("session").(*models.Session)
+	tag.Name = tagPayload.Name
 	tag.IsActive = true
-	tag.CreatedBy = &session.ID
+	tag.CreatedBy = &session.User.ID
 	tag.CreatedName = session.User.FullName
 	tag.CreatedFrom = c.Request().Header.Get("x-api-key")
 	result := database.Conn.Create(&tag)
 	if (result.Error != nil) {
-		// Return response
 		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
 			Message: "Failed create tag",
 			Data: result.Error.Error(),
-		})	
+		})
 	}
 	// Return response
 	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
