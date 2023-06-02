@@ -6,5 +6,16 @@ import (
 )
 
 func Migrate() {
-	database.Conn.AutoMigrate(&models.User{}, &models.Session{})
+	database.Conn.AutoMigrate(
+		&models.User{},
+		&models.Session{},
+		&models.Tag{},
+		&models.Question{},
+		&models.QuestionTag{},
+		&models.QuestionComment{},
+		&models.QuestionVote{},
+		&models.Answer{},
+		&models.AnswerComment{},
+		&models.AnswerVote{},
+	)
 }
