@@ -75,8 +75,12 @@ func (u *User) Append(user UserPayload) {
 func (u *User) FindByEmail() error  {
 	err := database.Conn.First(&u, "email = ?", strings.ToLower(u.Email)).Error
 	return err
-
 }
+
+func (u *User) GetUserById(id uuid.UUID) error {
+	err := database.Conn.First(&u, id).Error
+	return err
+} 
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	// Generate a hashed password

@@ -66,8 +66,20 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
+		// Make sure user still active
+		var user models.User
+		err = user.GetUserById(claims.UserID)
+		if (err != nil || !user.IsActive) {
+			return c.JSON(http.StatusUnauthorized, httpModels.BaseResponse{
+				Message: "Your account inactive, please contact web administrator",
+				Data: nil,
+			})
+		}
+
 		// Store the claims in the context for access in subsequent handlers
 		c.Set("claims", claims)
+		c.Set("session", &session)
+		c.Set("user", &user)
 		return next(c)
 	}
 }
