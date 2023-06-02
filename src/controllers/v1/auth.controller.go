@@ -106,8 +106,11 @@ func AuthSignIn(c echo.Context) error {
 }
 
 func AuthSignOut(c echo.Context) error  {
-	// claims := c.Get("claims").(*utils.Claims)
 	session := c.Get("session").(*models.Session)
+	session.DeletedBy = &session.User.ID;
+	session.DeletedName = session.User.FullName;
+	session.DeletedFrom = "User Sign Out";
+	session.SoftDelete()
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Sign out success",
