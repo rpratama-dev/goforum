@@ -1,12 +1,10 @@
 package middleware
 
 import (
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
-	httpModels "github.com/rpratama-dev/mymovie/src/models/http"
 	models "github.com/rpratama-dev/mymovie/src/models/table"
 	"github.com/rpratama-dev/mymovie/src/utils"
 )
@@ -67,12 +65,10 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // Middleware function to check x-api-key and validate the api-key
 func ApiKeyMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		defer utils.PanicHandler(c, nil)
 		apiKey := c.Request().Header.Get("x-api-key")
 		if (apiKey == "") {
-			return c.JSON(http.StatusUnauthorized, httpModels.BaseResponse{
-				Message: "Please provide API Key",
-				Data: nil,
-			})
+			panic("Please provide API Key")
 		}
 		c.Set("apiKey", &apiKey)
 		return next(c)
