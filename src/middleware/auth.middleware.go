@@ -32,7 +32,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, httpModels.BaseResponse{
 				Message: INVALID_SESSION,
-				Data: err,
+				Data: nil,
 			})
 		}
 
