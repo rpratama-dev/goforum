@@ -20,21 +20,21 @@ type BaseUser struct {
 	PhoneNumber  string `json:"phone_number" form:"phone_number" validate:"required,min=10,phone_number" gorm:"unique;not null"`
 }
 
+type UserRegister struct {
+	BaseUser
+	Password     string `json:"password" form:"password" validate:"required,min=8,strong_password"`
+}
+
 type UserLogin struct {
 	Email string `json:"email" form:"email" validate:"required,email"`
 	Password string `json:"password" form:"password" validate:"required"`
-}
-
-type UserPayload struct {
-	BaseUser
-	Password     string `json:"password" form:"password" validate:"required,min=8,strong_password"`
 }
 
 type User struct {
 	BaseModelID
 	BaseUser
 	Password     	string 			`json:"-" validate:"required,min=8,strong_password" gorm:"not null"`
-	VerifiedToken string 			`json:"-"`
+	VerifiedToken string 			`json:"-" gorm:"default:null"`
 	IsVerified 		bool 				`json:"is_verified"`
 	VerifiedAt 		*time.Time	`json:"verified_at" gorm:"type:timestamp without time zone;default:null"` 
 	BaseModelAudit
@@ -53,7 +53,7 @@ func (u *UserLogin) IsPasswordMatch(hashedPassword string) bool  {
 	return utils.IsPasswordMatch(hashedPassword, u.Password)
 }
 
-func (u *UserPayload) Validate() []utils.ErrorResponse {
+func (u *UserRegister) Validate() []utils.ErrorResponse {
 	validate := validator.New()
 	validate.RegisterValidation("phone_number", utils.ValidatePhoneNumber)
 	validate.RegisterValidation("strong_password", utils.ValidateStrongPassword)
@@ -65,7 +65,7 @@ func (u *UserPayload) Validate() []utils.ErrorResponse {
 	return nil
 }
 
-func (u *User) Append(user UserPayload) {
+func (u *User) Append(user UserRegister) {
 	u.FullName = user.FullName;
 	u.BirthDate = user.BirthDate;
 	u.Email = user.Email;
@@ -73,7 +73,16 @@ func (u *User) Append(user UserPayload) {
 	u.Password = user.Password;
 }
 
-func (u *User) FindByEmail() error  {
+func (s *User) Update(fields ...string) error {
+	return database.Conn.Model(&s).Select(fields).Updates(s).Error
+}
+
+func (u *User) GetByToken(token string) error  {
+	err := database.Conn.First(&u, "verified_token = ?", token).Error
+	return err
+}
+
+func (u *User) GetByEmail() error  {
 	err := database.Conn.First(&u, "email = ?", strings.ToLower(u.Email)).Error
 	return err
 }

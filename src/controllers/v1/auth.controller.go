@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	httpModels "github.com/rpratama-dev/mymovie/src/models/http"
@@ -11,7 +12,7 @@ import (
 )
 
 func AuthSignUp(c echo.Context) error {
-	var userInput models.UserPayload
+	var userInput models.UserRegister
 	c.Bind(&userInput)
 
 	// Start Validation
@@ -58,7 +59,7 @@ func AuthSignIn(c echo.Context) error {
 	// Start find and validate user
 	var user = models.User{}
 	user.Email = userInput.Email 
-	err := user.FindByEmail()
+	err := user.GetByEmail()
 	if (err != nil) {
 		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
 			Message: "Invalid email / password",
@@ -71,6 +72,18 @@ func AuthSignIn(c echo.Context) error {
 	if (!isMatch) {
 		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
 			Message: "Invalid email / password b",
+			Data: nil,
+		})
+	}
+
+	// Only verified and active user can sign-in
+	if (!user.IsVerified || !user.IsActive) {
+		message := "You'r account is inactive please contact web administrator"
+		if (!user.IsVerified) {
+			message = "Please verified you'r account first, before try sign-in"
+		}
+		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+			Message: message,
 			Data: nil,
 		})
 	}
@@ -118,10 +131,34 @@ func AuthSignOut(c echo.Context) error  {
 	})
 }
 
-func AuthChangePassword() {
-	//
-}
+func AuthVerify(c echo.Context) error {
+	verifyToken := c.Param("token")
+	var user models.User
+	err := user.GetByToken(verifyToken);
+	if (err != nil) {
+		// Return response
+		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+			Message: "Failed to verified user registration",
+			Data: nil,
+		})
+	}
 
-func AuthGetSession() {
-	//
+	// Update user status verification
+	currentTime := time.Now()
+	user.VerifiedToken = ""
+	user.VerifiedAt = &currentTime
+	user.IsVerified = true
+	user.IsActive = true
+	user.Update("verified_token", "verified_at", "is_verified", "is_active")
+
+	response := make(map[string]interface{})
+	response["verified_at"] = user.VerifiedAt;
+	response["is_verified"] = user.IsVerified;
+	response["is_active"] = user.IsActive;
+
+	// Return response
+	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+		Message: "Success verified user registration",
+		Data: response,
+	})
 }
