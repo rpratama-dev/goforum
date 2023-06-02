@@ -19,7 +19,7 @@ type QuestionPayload struct {
 type Question struct {
 	BaseModelID
 	BaseQuestion
-	Tags						[]Tag	`json:"tags" form:"tags" gorm:"many2many:question_tags;" validate:"required,min=1;max=5"`
+	Tags						[]Tag			`json:"tags" form:"tags" gorm:"many2many:question_tags;" validate:"required,min=1;max=5"`
 	UserID      		uuid.UUID	`json:"user_id" gorm:"type:uuid;index;not null"`
 	User        		User      `json:"user" gorm:"foreignKey:UserID"`
 	BaseModelAudit

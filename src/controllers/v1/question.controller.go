@@ -12,7 +12,7 @@ import (
 func UserQuestionIndex(c echo.Context) error {
 	session := c.Get("session").(*models.Session)
 	var questions []models.Question
-	result := database.Conn.Where(map[string]interface{}{
+	result := database.Conn.Preload("Tags").Preload("User").Where(map[string]interface{}{
 		"user_id": session.UserID.String(),
 		"is_active": true,
 	}).Find(&questions)
