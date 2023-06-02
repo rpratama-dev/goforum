@@ -175,6 +175,36 @@ func UserQuestionUpdate(c echo.Context) error {
 }
 
 func UserQuestionDestroy(c echo.Context) error {
+	defer utils.PanicHandler(c, nil)
+	session := c.Get("session").(*models.Session)
+	apiKey := c.Get("apiKey").(*string)
+	questionId := c.Param("id")
+	_, err := uuid.Parse(questionId)
+	if err != nil {
+		panic("Param must be a uuid")
+	}
+
+	// Find Question
+	var question models.Question
+	result := database.Conn.Where(map[string]interface{}{
+		"id": questionId,
+		"user_id": session.UserID.String(),
+		"is_active": true,
+	}).First(&question)
+	if (result.Error != nil) {
+		panic(result.Error.Error())
+	}
+
+	// Delete Question
+	question.IsActive = false
+	question.DeletedBy = &session.User.ID
+	question.DeletedName = session.User.FullName
+	question.DeletedFrom = *apiKey
+	err = question.SoftDelete()
+	if (err != nil) {
+		panic(err.Error())
+	}
+
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Success delete question by user",
 		Data: nil,

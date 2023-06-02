@@ -1,9 +1,13 @@
 package models
 
 import (
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
+	"github.com/rpratama-dev/mymovie/src/services/database"
 	"github.com/rpratama-dev/mymovie/src/utils"
+	"gorm.io/gorm"
 )
 
 type BaseQuestion struct {
@@ -33,4 +37,16 @@ func (qp *QuestionPayload) Validate() []utils.ErrorResponse {
 		return utils.ParseErrors(err.(validator.ValidationErrors))
 	}
 	return nil
+}
+
+func (s *Question) SoftDelete() error {
+	s.IsActive = false
+	s.DeletedAt = gorm.DeletedAt{Time: time.Now(), Valid: true};
+	return database.Conn.Model(&s).Select(
+		"is_active",
+		"deleted_by",
+		"deleted_at",
+		"deleted_name",
+		"deleted_from",
+	).Updates(s).Error
 }
