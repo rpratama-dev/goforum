@@ -7,6 +7,7 @@ import (
 	httpModels "github.com/rpratama-dev/mymovie/src/models/http"
 	models "github.com/rpratama-dev/mymovie/src/models/table"
 	"github.com/rpratama-dev/mymovie/src/services/database"
+	"github.com/rpratama-dev/mymovie/src/utils"
 )
 
 func TagIndex(c echo.Context) error {
@@ -21,6 +22,7 @@ func TagIndex(c echo.Context) error {
 }
 
 func TagStore(c echo.Context) error {
+	defer utils.DeferHandler(c)
 	var tagPayload models.TagPayload
 	c.Bind(&tagPayload)
 
@@ -33,9 +35,9 @@ func TagStore(c echo.Context) error {
 	tag.CreatedFrom = c.Request().Header.Get("x-api-key")
 	result := database.Conn.Create(&tag)
 	if (result.Error != nil) {
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
-			Message: "Failed create tag",
-			Data: result.Error.Error(),
+		panic(utils.PanicPayload{
+			Message: result.Error.Error(),
+			HttpStatus: http.StatusBadRequest,
 		})
 	}
 	// Return response
@@ -46,13 +48,14 @@ func TagStore(c echo.Context) error {
 }
 
 func TagShow(c echo.Context) error {
+	defer utils.DeferHandler(c)
 	var tag models.Tag
 	err := database.Conn.First(&tag, "id = ?", c.Param("id"))
 	if (err.Error != nil) {
-		return c.JSON(http.StatusNotFound, httpModels.BaseResponse{
+		panic(utils.PanicPayload{
 			Message: "Tag you'r looking for doesn't exist",
-			Data: err.Error.Error(),
-		})	
+			HttpStatus: http.StatusNotFound,
+		})
 	} 
 	// Return response
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
