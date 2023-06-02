@@ -42,14 +42,14 @@ func GenerateJWT(claim ClaimPayload) (string, *Claims, error) {
 
 	// Create the JWT claims
 	claims := Claims{}
-	claims.Name = claim.Name;
-	claims.UserID = claim.UserID;
-	claims.SessionID = claim.SessionID;
-	claims.Audience = claim.UserName;
-	claims.IssuedAt = time.Now().Unix();
-	claims.Issuer = "My Movie Company, PT";
-	claims.Subject = "My Movie App";
-	claims.ExpiresAt = claim.ExpiresAt;
+	claims.Name = claim.Name
+	claims.UserID = claim.UserID
+	claims.SessionID = claim.SessionID
+	claims.Audience = claim.UserName
+	claims.IssuedAt = time.Now().Unix()
+	claims.Issuer = "My Movie Company, PT"
+	claims.Subject = "My Movie App"
+	claims.ExpiresAt = claim.ExpiresAt
 
 	// Create the JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -57,7 +57,7 @@ func GenerateJWT(claim ClaimPayload) (string, *Claims, error) {
 	// Sign the JWT token with the private key
 	tokenString, err := token.SignedString(privateKey)
 	if err != nil {
-		return "", nil, fmt.Errorf("failed to sign JWT: %w", err);
+		return "", nil, fmt.Errorf("failed to sign JWT: %w", err)
 	}
 
 	return tokenString, &claims, nil

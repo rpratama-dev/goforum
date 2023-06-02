@@ -48,9 +48,9 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Check session expiration
 		if (session.ExpiredAt.Unix() <= time.Now().Unix()) {
-			session.DeletedBy = &claims.UserID;
-			session.DeletedName = claims.Name;
-			session.DeletedFrom = "Auth Middleware";
+			session.DeletedBy = &claims.UserID
+			session.DeletedName = claims.Name
+			session.DeletedFrom = "Auth Middleware"
 			session.SoftDelete()
 			panic(utils.PanicPayload{
 				Message: INVALID_SESSION,

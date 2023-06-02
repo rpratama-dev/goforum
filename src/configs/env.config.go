@@ -22,7 +22,7 @@ var Env = Config{}
 // load env configuration
 func InitConfig() {
 	// Load the .env file
-	goEnv := os.Getenv("GO_ENV");
+	goEnv := os.Getenv("GO_ENV")
 	
 	if (goEnv != "production") {
 		// Load env from `.env` file 
@@ -33,14 +33,14 @@ func InitConfig() {
 	}
 
 	// Create a Config instance and populate it with the environment variables
-	Env.Port = os.Getenv("PORT");
+	Env.Port = os.Getenv("PORT")
 	if (Env.Port == "") {
 		// Set default port
 		Env.Port = "8080"
 	}
-	Env.DBHost = os.Getenv("DB_HOST");
-	Env.DBPort = os.Getenv("DB_PORT");
-	Env.DBName = os.Getenv("DB_NAME");
-	Env.DBUser = os.Getenv("DB_USER");
-	Env.DBPassword = os.Getenv("DB_PASSWORD");
+	Env.DBHost = os.Getenv("DB_HOST")
+	Env.DBPort = os.Getenv("DB_PORT")
+	Env.DBName = os.Getenv("DB_NAME")
+	Env.DBUser = os.Getenv("DB_USER")
+	Env.DBPassword = os.Getenv("DB_PASSWORD")
 }

@@ -17,13 +17,13 @@ type BaseQuestion struct {
 
 type QuestionPayload struct {
 	BaseQuestion
-	Tags				[]string	`json:"tags" form:"tags" gorm:"many2many:question_tags;" validate:"uuidslices,required,min=1,max=5"`
+	Tags				[]string	`json:"tags" form:"tags" gorm:"many2many:question_tags" validate:"uuidslices,required,min=1,max=5"`
 }
 
 type Question struct {
 	BaseModelID
 	BaseQuestion
-	Tags						[]Tag			`json:"tags" form:"tags" gorm:"many2many:question_tags;" validate:"required,min=1;max=5"`
+	Tags						[]Tag			`json:"tags" form:"tags" gorm:"many2many:question_tags" validate:"required,min=1,max=5"`
 	UserID      		uuid.UUID	`json:"user_id" gorm:"type:uuid;index;not null"`
 	User        		User      `json:"user" gorm:"foreignKey:UserID"`
 	BaseModelAudit
@@ -41,7 +41,7 @@ func (qp *QuestionPayload) Validate() []utils.ErrorResponse {
 
 func (s *Question) SoftDelete() error {
 	s.IsActive = false
-	s.DeletedAt = gorm.DeletedAt{Time: time.Now(), Valid: true};
+	s.DeletedAt = gorm.DeletedAt{Time: time.Now(), Valid: true}
 	return database.Conn.Model(&s).Select(
 		"is_active",
 		"deleted_by",

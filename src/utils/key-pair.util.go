@@ -17,7 +17,7 @@ var privateKeyPath = filepath.Join("./src/configs", "key-pair", "private.key")
 var publicKeyPath = filepath.Join("./src/configs", "key-pair", "public.crt")
 
 func isFileExist(pathToFile string) (bool)  {
-	_, err := os.Stat(pathToFile);
+	_, err := os.Stat(pathToFile)
 
 	if err == nil {
   // path/to/whatever exists
@@ -38,7 +38,7 @@ func GenerateKeyPair() (bool) {
 	isPublicExist := isFileExist(privateKeyPath)
 
 	if (isPrivateExist && isPublicExist) {
-		return true;
+		return true
 	}
 
 	// Generate RSA key pair
@@ -94,21 +94,21 @@ func GenerateKeyPair() (bool) {
 	}
 
 	fmt.Println("Public key saved to public.crt")
-	return true;
+	return true
 }
 
 func GetPublicKey() (string)  {
-	publicKey := ReadFile(publicKeyPath);
+	publicKey := ReadFile(publicKeyPath)
 	if (publicKey == nil) {
-		return "";
+		return ""
 	}
 	return string(publicKey)
 }
 
 func GetPrivateKey() (string)  {
-	privateKey := ReadFile(privateKeyPath);
+	privateKey := ReadFile(privateKeyPath)
 	if (privateKey == nil) {
-		return "";
+		return ""
 	}
 	return string(privateKey)
 }

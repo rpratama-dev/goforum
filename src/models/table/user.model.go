@@ -66,11 +66,11 @@ func (u *UserRegister) Validate() []utils.ErrorResponse {
 }
 
 func (u *User) Append(user UserRegister) {
-	u.FullName = user.FullName;
-	u.BirthDate = user.BirthDate;
-	u.Email = user.Email;
-	u.PhoneNumber = user.PhoneNumber;
-	u.Password = user.Password;
+	u.FullName = user.FullName
+	u.BirthDate = user.BirthDate
+	u.Email = user.Email
+	u.PhoneNumber = user.PhoneNumber
+	u.Password = user.Password
 }
 
 func (s *User) Update(fields ...string) error {

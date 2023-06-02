@@ -28,10 +28,10 @@ type Session struct {
 }
 
 func (s *Session) Append(payload SessionPayload)  {
-	s.UserID = payload.UserID;
-	s.IPAddress = payload.IPAddress;
-	s.UserAgent = payload.UserAgent;
-	s.ExpiredAt = time.Now().Add(1 * time.Hour);
+	s.UserID = payload.UserID
+	s.IPAddress = payload.IPAddress
+	s.UserAgent = payload.UserAgent
+	s.ExpiredAt = time.Now().Add(1 * time.Hour)
 	s.CreatedBy = &payload.UserID
 	s.CreatedName = payload.FullName
 	s.IsActive = true
@@ -53,7 +53,7 @@ func (s *Session) Update(fields ...string) error {
 
 func (s *Session) SoftDelete() error {
 	s.IsActive = false
-	s.DeletedAt = gorm.DeletedAt{Time: time.Now(), Valid: true};
+	s.DeletedAt = gorm.DeletedAt{Time: time.Now(), Valid: true}
 	return database.Conn.Model(&s).Select(
 		"is_active",
 		"deleted_by",

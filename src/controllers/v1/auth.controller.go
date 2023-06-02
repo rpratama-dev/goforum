@@ -112,8 +112,8 @@ func AuthSignIn(c echo.Context) error {
 
 	// Convert Unix timestamp to time.Time in UTC
 	response := make(map[string]interface{})
-	response["access_token"] = token;
-	response["expired_at"] = sessionModel.ExpiredAt;
+	response["access_token"] = token
+	response["expired_at"] = sessionModel.ExpiredAt
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Sign in success",
@@ -124,9 +124,9 @@ func AuthSignIn(c echo.Context) error {
 func AuthSignOut(c echo.Context) error  {
 	defer utils.DeferHandler(c)
 	session := c.Get("session").(*models.Session)
-	session.DeletedBy = &session.User.ID;
-	session.DeletedName = session.User.FullName;
-	session.DeletedFrom = "User Sign Out";
+	session.DeletedBy = &session.User.ID
+	session.DeletedName = session.User.FullName
+	session.DeletedFrom = "User Sign Out"
 	session.SoftDelete()
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
@@ -139,7 +139,7 @@ func AuthVerify(c echo.Context) error {
 	defer utils.DeferHandler(c)
 	verifyToken := c.Param("token")
 	var user models.User
-	err := user.GetByToken(verifyToken);
+	err := user.GetByToken(verifyToken)
 	if (err != nil) {
 		panic(utils.PanicPayload{
 			Message: "Failed to verified user registration",
@@ -156,9 +156,9 @@ func AuthVerify(c echo.Context) error {
 	user.Update("verified_token", "verified_at", "is_verified", "is_active")
 
 	response := make(map[string]interface{})
-	response["verified_at"] = user.VerifiedAt;
-	response["is_verified"] = user.IsVerified;
-	response["is_active"] = user.IsActive;
+	response["verified_at"] = user.VerifiedAt
+	response["is_verified"] = user.IsVerified
+	response["is_active"] = user.IsActive
 
 	// Return response
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
