@@ -11,6 +11,37 @@ import (
 	"github.com/rpratama-dev/mymovie/src/utils"
 )
 
+func AuthSignUp(c echo.Context) error {
+	var userInput models.UserPayload
+	c.Bind(&userInput)
+
+	// Start Validation
+	errValidation := userInput.Validate()
+	if (errValidation != nil) {
+		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+			Message: "Validation Error",
+			Data: errValidation,
+		})
+	}
+
+	// Save model user
+	var userModel = models.User{}
+	userModel.Append(userInput)
+	result := database.Conn.Create(&userModel)
+	if result.Error != nil {
+		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
+			Message: result.Error.Error(),
+			Data: nil,
+		})
+	}
+
+	// Return response
+	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+		Message: "success",
+		Data: userModel,
+	})
+}
+
 func AuthSignIn(c echo.Context) error {
 	// Bind input user
 	var userInput models.UserLogin
@@ -71,39 +102,17 @@ func AuthSignIn(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
-		Message: "success",
+		Message: "Sign in success",
 		Data: response,
 	})
 }
 
-func AuthSignUp(c echo.Context) error {
-	var userInput models.UserPayload
-	c.Bind(&userInput)
+func AuthSignOut(c echo.Context) error  {
+	claims := c.Get("claims").(*utils.Claims)
 
-	// Start Validation
-	errValidation := userInput.Validate()
-	if (errValidation != nil) {
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
-			Message: "Validation Error",
-			Data: errValidation,
-		})
-	}
-
-	// Save model user
-	var userModel = models.User{}
-	userModel.Append(userInput)
-	result := database.Conn.Create(&userModel)
-	if result.Error != nil {
-		return c.JSON(http.StatusBadRequest, httpModels.BaseResponse{
-			Message: result.Error.Error(),
-			Data: nil,
-		})
-	}
-
-	// Return response
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
-		Message: "success",
-		Data: userModel,
+		Message: "Sign out success",
+		Data: claims,
 	})
 }
 
