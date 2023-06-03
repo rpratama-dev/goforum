@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -30,11 +29,26 @@ func QuestionVoteStore(c echo.Context) error {
 		})
 	}
 
+	// Validate question is exists
+	var question models.Question
+	err := database.Conn.
+		Where(map[string]interface{}{
+			"id": votePayload.QuestionID,
+			"is_active": true,
+		}).First(&question).Error
+
+	if err != nil {
+		panic(utils.PanicPayload{
+			Message: err.Error(),
+			HttpStatus: http.StatusNotFound,
+		})
+	}
+
 	var total int64 = 0
 	// Start to validate if user already answered this question
 	var questionVote models.QuestionVote
 	questionVote.VoteType = votePayload.VoteType
-	err := database.Conn.
+	err = database.Conn.
 		Preload("Question").
 		Where(map[string]interface{}{
 			"question_id": votePayload.QuestionID,
@@ -43,10 +57,9 @@ func QuestionVoteStore(c echo.Context) error {
 
 	if (err != nil) {
 		total = 0
-		fmt.Println("Hello World")
 	}
 
-	if !questionVote.Question.IsActive {
+	if questionVote.Question != nil && !questionVote.Question.IsActive {
 		panic(utils.PanicPayload{
 			Message: "Unable to vote, your selected question has been archived",
 			HttpStatus: http.StatusInternalServerError,
@@ -59,7 +72,7 @@ func QuestionVoteStore(c echo.Context) error {
 			"updated_name": session.User.FullName,
 			"updated_from": *c.Get("apiKey").(*string),
 		})
-		if (result.Error != nil) {
+		if result.Error != nil {
 			panic(utils.PanicPayload{
 				Message: result.Error.Error(),
 				HttpStatus: http.StatusInternalServerError,

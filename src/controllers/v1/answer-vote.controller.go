@@ -30,6 +30,27 @@ func AnswerVoteStore(c echo.Context) error {
 		})
 	}
 
+	// Validate question & answer is exists
+	var answer models.Answer
+	err := database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"id": votePayload.AnswerID,
+			"question_id": votePayload.QuestionID,
+			"is_active": votePayload.QuestionID,
+		}).First(&answer).Error
+
+	if err != nil || !answer.Question.IsActive {
+		message := "Your selected question has ben archived"
+		if err != nil {
+			message = err.Error()
+		}
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusNotFound,
+		})
+	}
+
 	// Validate is question still active
 	var total int64 = 0
 	// Start to validate if user already answered this question

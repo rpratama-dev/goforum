@@ -33,7 +33,7 @@ type Answer struct {
 	User        	*User      				`json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Comments 			*[]AnswerComment	`json:"comments,omitempty"`
 	Votes 				*[]AnswerVote			`json:"votes,omitempty"`
-	Score					uint64						`json:"score" gorm:"-"`
+	Score					int32						`json:"score" gorm:"-"`
 	BaseModelAudit
 }
 
@@ -61,7 +61,7 @@ func (a *Answer) Append(payload AnswerPayload, session Session, apiKey string) {
 }
 
 func (q *Answer) CalculateScore() {
-	var upVotes, downVotes uint64
+	var upVotes, downVotes int32
 	if q.Votes != nil {
 		for _, vote := range *q.Votes {
 			fmt.Println("VoteType", vote.VoteType)
@@ -74,7 +74,9 @@ func (q *Answer) CalculateScore() {
 	}
 	// Calculate score based on the number of upVotes and downVotes
 	score := (upVotes * 5) - (downVotes * 2)
-
+	if (score < 0) {
+		score = 0
+	}
 	fmt.Println("VoteType score", score)
 	q.Score = score
 }
