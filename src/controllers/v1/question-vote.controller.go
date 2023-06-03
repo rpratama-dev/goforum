@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -33,10 +34,18 @@ func QuestionVoteStore(c echo.Context) error {
 	// Start to validate if user already answered this question
 	var questionVote models.QuestionVote
 	questionVote.VoteType = votePayload.VoteType
-	database.Conn.Preload("Question").Where(map[string]interface{}{
-		"question_id": votePayload.QuestionID,
-		"user_id": session.User.ID,
-	}).First(&questionVote).Count(&total)
+	err := database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"question_id": votePayload.QuestionID,
+			"user_id": session.User.ID,
+		}).First(&questionVote).Count(&total).Error
+
+	if (err != nil) {
+		total = 0
+		fmt.Println("Hello World")
+	}
+
 	if !questionVote.Question.IsActive {
 		panic(utils.PanicPayload{
 			Message: "Unable to vote, your selected question has been archived",
@@ -56,10 +65,12 @@ func QuestionVoteStore(c echo.Context) error {
 				HttpStatus: http.StatusInternalServerError,
 			})
 		}
+		
 	} else {
 		// Create new record if already vote
 		questionVote.Append(votePayload, *session, *c.Get("apiKey").(*string))
 		result := database.Conn.Create(&questionVote)
+
 		if (result.Error != nil) {
 			panic(utils.PanicPayload{
 				Message: result.Error.Error(),
@@ -73,7 +84,7 @@ func QuestionVoteStore(c echo.Context) error {
 	response["vote"] = questionVote.VoteType;
 	response["question_id"] = questionVote.QuestionID;
 
-	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "Success add vote to user",
 		Data: questionVote,
 	})

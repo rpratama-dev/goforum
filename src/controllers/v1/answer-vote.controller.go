@@ -35,16 +35,20 @@ func AnswerVoteStore(c echo.Context) error {
 	// Start to validate if user already answered this question
 	var answerVote models.AnswerVote
 	answerVote.VoteType = votePayload.VoteType
-	database.Conn.Preload("Answer").Where(map[string]interface{}{
-		"answer_id": votePayload.AnswerID,
-		"user_id": session.User.ID,
-	}).First(&answerVote).Count(&total)
-	if !answerVote.Answer.IsActive {
-		panic(utils.PanicPayload{
-			Message: "Unable to vote, your selected answer has been archived",
-			HttpStatus: http.StatusInternalServerError,
-		})
-	} else if total > 0 {
+	database.Conn.
+		Preload("Answer").
+		Where(map[string]interface{}{
+			"answer_id": votePayload.AnswerID,
+			"user_id": session.User.ID,
+		}).First(&answerVote).Count(&total)
+
+	if total > 0 {
+		if !answerVote.Answer.IsActive {
+			panic(utils.PanicPayload{
+				Message: "Unable to vote, your selected answer has been archived",
+				HttpStatus: http.StatusInternalServerError,
+			})
+		}
 		// Update record if already vote
 		result := database.Conn.Model(&answerVote).Updates(map[string]interface{}{
 			"vote_type": votePayload.VoteType,
@@ -75,7 +79,7 @@ func AnswerVoteStore(c echo.Context) error {
 	response["vote"] = answerVote.VoteType;
 	response["answer_id"] = answerVote.AnswerID;
 
-	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "Success add vote to user",
 		Data: answerVote,
 	})

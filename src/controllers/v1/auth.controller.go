@@ -38,7 +38,7 @@ func AuthSignUp(c echo.Context) error {
 	}
 
 	// Return response
-	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "success",
 		Data: userModel,
 	})
