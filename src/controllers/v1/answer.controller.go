@@ -100,7 +100,7 @@ func AnswerUpdate(c echo.Context) error {
 		})
 	}
 
-	// Start to validate if user already answered this question
+	// Start to validate answer
 	var answer models.Answer
 	result := database.Conn.
 		Preload("Question").
@@ -161,10 +161,27 @@ func AnswerPatch(c echo.Context) error {
 			HttpStatus: http.StatusBadRequest,
 		})
 	}
+	
+	// Start to validate answer
+	var countBestAnswer int64
+	var bestAnswer models.Answer
+	result := database.Conn.
+		Where(map[string]interface{}{
+			"question_id": patchPayload.QuestionID,
+			"is_the_best": true,
+		}).First(&bestAnswer).Count(&countBestAnswer)
+
+	// Only user created question can mark as the best answer
+	if result.Error == nil {
+		panic(utils.PanicPayload{
+			Message: "Can't mark multiple best answer",
+			HttpStatus: http.StatusUnauthorized,
+		})
+	}
 
 	// Start to validate if user already answered this question
 	var answer models.Answer
-	result := database.Conn.
+	result = database.Conn.
 		Preload("Question").
 		Where(map[string]interface{}{
 			"question_id": patchPayload.QuestionID,
@@ -172,7 +189,7 @@ func AnswerPatch(c echo.Context) error {
 		}).First(&answer)
 
 	// Only user created question can mark as the best answer
-	if result.Error == nil || answer.Question.UserID != session.User.ID {
+	if result.Error == nil || (answer.Question != nil && answer.Question.UserID != session.User.ID) {
 		message := "only the question owner can choose the best answer"
 		if result.Error == nil {
 			message = result.Error.Error()
