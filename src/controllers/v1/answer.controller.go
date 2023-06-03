@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -188,10 +189,11 @@ func AnswerPatch(c echo.Context) error {
 			"id": patchPayload.AnswerID,
 		}).First(&answer)
 
+	fmt.Println("Here", answer.Question != nil)
 	// Only user created question can mark as the best answer
-	if result.Error == nil || (answer.Question != nil && answer.Question.UserID != session.User.ID) {
+	if result.Error != nil || answer.Question == nil || answer.Question.UserID != session.User.ID {
 		message := "only the question owner can choose the best answer"
-		if result.Error == nil {
+		if result.Error != nil {
 			message = result.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -200,7 +202,8 @@ func AnswerPatch(c echo.Context) error {
 		})
 	}
 
-	if result.Error != nil || !answer.Question.IsActive || answer.IsTheBest {
+
+	if result.Error != nil || (answer.Question != nil && !answer.Question.IsActive) || answer.IsTheBest {
 		message := "Can't change answer for inactive question"
 		if answer.IsTheBest {
 			message = "You'r answer already mark as the best, so you can't edit"
