@@ -107,7 +107,7 @@ func AnswerCommentUpdate(c echo.Context) error {
 	message := "";
 	if result.Error != nil {
 		message = result.Error.Error()
-	} else if (answerComment.Answer.IsActive) {
+	} else if (!answerComment.Answer.IsActive) {
 		message = "Unable to update comment for inactive answer"
 	} else if (answerComment.Answer.Question == nil) {
 		message = "Question related with this answer not found"
