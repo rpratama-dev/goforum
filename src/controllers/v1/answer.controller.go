@@ -167,6 +167,14 @@ func AnswerPatch(c echo.Context) error {
 		"id": patchPayload.AnswerID,
 	}).First(&answer)
 
+	// Only user created question can mark as the best answer
+	if result.Error == nil && answer.Question.UserID != session.User.ID {
+		panic(utils.PanicPayload{
+			Message: "only the question owner can choose the best answer",
+			HttpStatus: http.StatusUnauthorized,
+		})
+	}
+
 	if (result.Error != nil || !answer.Question.IsActive || answer.IsTheBest) {
 		message := "Can't change answer for inactive question"
 		if (answer.IsTheBest) {
@@ -180,17 +188,9 @@ func AnswerPatch(c echo.Context) error {
 		})
 	}
 
-	// Only user created question can mark as the best answer
-	if answer.Question.UserID != session.User.ID {
-		panic(utils.PanicPayload{
-			Message: "only the question owner can choose the best answer",
-			HttpStatus: http.StatusBadRequest,
-		})
-	}
-
 	// Update record
 	database.Conn.Model(&answer).Updates(map[string]interface{}{
-		"is_best_answer": true,
+		"is_the_best": true,
 		"updated_by": session.User.ID,
 		"updated_name": session.User.FullName,
 		"updated_from": *c.Get("apiKey").(*string),
