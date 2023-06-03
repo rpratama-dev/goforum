@@ -115,6 +115,14 @@ func UserQuestionShow(c echo.Context) error {
 	result := database.Conn.
 		Preload("Tags").
 		Preload("User").
+		Preload("Votes").
+		Preload("Comments").
+		Preload("Comments.User").
+		Preload("Answers").
+		Preload("Answers.User").
+		Preload("Answers.Votes").
+		Preload("Answers.Comments").
+		Preload("Answers.Comments.User").
 		Where(map[string]interface{}{
 			"id": c.Param("id"),
 			"user_id": session.UserID.String(),
@@ -127,6 +135,13 @@ func UserQuestionShow(c echo.Context) error {
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
 		})
+	}
+
+	question.CalculateScore()
+	if question.Answers != nil {
+		for i := range *question.Answers {
+			(*question.Answers)[i].CalculateScore()
+		}
 	}
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
@@ -281,7 +296,7 @@ func QuestionShow(c echo.Context) error  {
 		Preload("Answers.Votes").
 		Preload("Answers.Comments").
 		Preload("Answers.Comments.User").
-		First(&question, questionId).Error
+		First(&question, "id = ?", questionId).Error
 	if err != nil {
 		panic(utils.PanicPayload{
 			Message: err.Error(),
@@ -290,8 +305,10 @@ func QuestionShow(c echo.Context) error  {
 	}
 
 	question.CalculateScore()
-	for i := range *question.Answers {
-		(*question.Answers)[i].CalculateScore()
+	if question.Answers != nil {
+		for i := range *question.Answers {
+			(*question.Answers)[i].CalculateScore()
+		}
 	}
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
