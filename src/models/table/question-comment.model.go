@@ -11,6 +11,11 @@ type QuestionCommentPayload struct {
 	QuestionID  		string	`json:"question_id" form:"question_id" validate:"uuid,required"`
 }
 
+type QuestionCommentPayloadUpdate struct {
+	QuestionCommentPayload
+	CommentID  			string	`json:"comment_id" form:"comment_id" validate:"uuid,required"`
+}
+
 type QuestionComment struct {
 	BaseModelID
 	Content					string		`gorm:"not null" json:"content"`
@@ -22,6 +27,10 @@ type QuestionComment struct {
 }
 
 func (a *QuestionCommentPayload) Validate() []utils.ErrorResponse {
+	return questionCommentValidate(a)
+}
+
+func (a *QuestionCommentPayloadUpdate) Validate() []utils.ErrorResponse {
 	return questionCommentValidate(a)
 }
 

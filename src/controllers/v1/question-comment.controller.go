@@ -31,7 +31,7 @@ func QuestionCommentStore(c echo.Context) error {
 
 	// Check if question is exist & active
 	var question models.Question
-	result := database.Conn.Preload("Question").Where(map[string]interface{}{
+	result := database.Conn.Where(map[string]interface{}{
 		"id": questionCommentPayload.QuestionID,
 		"is_active": true,
 	}).First(&question)
@@ -69,8 +69,59 @@ func QuestionCommentStore(c echo.Context) error {
 }
 
 func QuestionCommentUpdate(c echo.Context) error {
+	defer utils.DeferHandler(c)
+	session := c.Get("session").(*models.Session)
+
+	// Bind user input & validate
+	var questionCommentPayload models.QuestionCommentPayloadUpdate
+	c.Bind(&questionCommentPayload)
+	questionCommentPayload.QuestionID = c.Param("question_id")
+	questionCommentPayload.CommentID = c.Param("comment_id")
+
+	// Start validation input
+	errValidation := questionCommentPayload.Validate()
+	if (errValidation != nil) {
+		panic(utils.PanicPayload{
+			Message: "Validation Error",
+			Data: errValidation,
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+
+	// Check if question is exist & active
+	var questionComment models.QuestionComment
+	result := database.Conn.Preload("Question").Where(map[string]interface{}{
+		"id": questionCommentPayload.CommentID,
+		"question_id": questionCommentPayload.QuestionID,
+		"is_active": true,
+	}).First(&questionComment)
+	if (result.Error != nil || !questionComment.Question.IsActive) {
+		message := "Unable to update comment for inactive question"
+		if (result.Error != nil) {
+			message = result.Error.Error()
+		}
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusNotFound,
+		})
+	}
+
+	// Update comment
+	database.Conn.Model(&questionComment).Updates(map[string]interface{}{
+		"content": questionCommentPayload.Content,
+		"updated_by": session.User.ID,
+		"updated_name": session.User.FullName,
+		"updated_from": *c.Get("apiKey").(*string),
+	})
+
+	response := make(map[string]interface{})
+	response["id"] = questionComment.ID
+	response["content"] = questionComment.Content
+	response["question_id"] = questionComment.QuestionID
+	response["questionComment"] = questionComment
+
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Success update a comment for selected question",
-		Data: nil,
+		Data: response,
 	})
 }
