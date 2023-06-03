@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/rpratama-dev/mymovie/src/services/database"
+	"github.com/rpratama-dev/goforum/src/services/database"
 	"gorm.io/gorm"
 )
 

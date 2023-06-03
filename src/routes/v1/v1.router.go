@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/rpratama-dev/mymovie/src/middleware"
+	"github.com/rpratama-dev/goforum/src/middleware"
 )
 
 func RegisterRoutes(g *echo.Group) {

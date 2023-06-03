@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/rpratama-dev/mymovie/src/controllers/v1"
-	"github.com/rpratama-dev/mymovie/src/middleware"
+	"github.com/rpratama-dev/goforum/src/controllers/v1"
+	"github.com/rpratama-dev/goforum/src/middleware"
 )
 
 func AuthRouter(route *echo.Group)  {

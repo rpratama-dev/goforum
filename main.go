@@ -3,12 +3,12 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/rpratama-dev/mymovie/src/configs"
-	appMiddleware "github.com/rpratama-dev/mymovie/src/middleware"
-	"github.com/rpratama-dev/mymovie/src/routes"
-	"github.com/rpratama-dev/mymovie/src/services/database"
-	"github.com/rpratama-dev/mymovie/src/services/migration"
-	"github.com/rpratama-dev/mymovie/src/utils"
+	"github.com/rpratama-dev/goforum/src/configs"
+	appMiddleware "github.com/rpratama-dev/goforum/src/middleware"
+	"github.com/rpratama-dev/goforum/src/routes"
+	"github.com/rpratama-dev/goforum/src/services/database"
+	"github.com/rpratama-dev/goforum/src/services/migration"
+	"github.com/rpratama-dev/goforum/src/utils"
 )
 
 func init()  {

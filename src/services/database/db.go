@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/rpratama-dev/mymovie/src/configs"
+	"github.com/rpratama-dev/goforum/src/configs"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

@@ -5,7 +5,7 @@ import (
 	"runtime"
 
 	"github.com/labstack/echo/v4"
-	models "github.com/rpratama-dev/mymovie/src/models/http"
+	models "github.com/rpratama-dev/goforum/src/models/http"
 )
 
 type PanicPayload struct {

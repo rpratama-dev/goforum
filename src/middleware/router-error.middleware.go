@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	httpModels "github.com/rpratama-dev/mymovie/src/models/http"
+	httpModels "github.com/rpratama-dev/goforum/src/models/http"
 )
 
 func RouterErrorMiddleware (next echo.HandlerFunc) echo.HandlerFunc {

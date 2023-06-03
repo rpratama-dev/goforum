@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	httpModels "github.com/rpratama-dev/mymovie/src/models/http"
-	models "github.com/rpratama-dev/mymovie/src/models/table"
-	"github.com/rpratama-dev/mymovie/src/services/database"
-	"github.com/rpratama-dev/mymovie/src/utils"
+	httpModels "github.com/rpratama-dev/goforum/src/models/http"
+	models "github.com/rpratama-dev/goforum/src/models/table"
+	"github.com/rpratama-dev/goforum/src/services/database"
+	"github.com/rpratama-dev/goforum/src/utils"
 )
 
 func AnswerVoteStore(c echo.Context) error {

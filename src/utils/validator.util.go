@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"github.com/rpratama-dev/mymovie/src/variables"
+	"github.com/rpratama-dev/goforum/src/variables"
 )
 
 

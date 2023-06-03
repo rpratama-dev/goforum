@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	models "github.com/rpratama-dev/mymovie/src/models/table"
-	"github.com/rpratama-dev/mymovie/src/utils"
+	models "github.com/rpratama-dev/goforum/src/models/table"
+	"github.com/rpratama-dev/goforum/src/utils"
 )
 
 const INVALID_SESSION = "Access Denied, token has invalid / expired"

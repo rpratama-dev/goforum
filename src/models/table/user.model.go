@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
-	"github.com/rpratama-dev/mymovie/src/services/database"
-	"github.com/rpratama-dev/mymovie/src/utils"
+	"github.com/rpratama-dev/goforum/src/services/database"
+	"github.com/rpratama-dev/goforum/src/utils"
 	"gorm.io/gorm"
 )
 

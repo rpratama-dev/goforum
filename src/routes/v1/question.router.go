@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/rpratama-dev/mymovie/src/controllers/v1"
-	router "github.com/rpratama-dev/mymovie/src/routes/v1/question"
+	"github.com/rpratama-dev/goforum/src/controllers/v1"
+	router "github.com/rpratama-dev/goforum/src/routes/v1/question"
 )
 
 func QuestionRouter(route *echo.Group)  {

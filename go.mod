@@ -1,4 +1,4 @@
-module github.com/rpratama-dev/mymovie
+module github.com/rpratama-dev/goforum
 
 go 1.20
 
