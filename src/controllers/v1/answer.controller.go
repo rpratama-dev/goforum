@@ -69,6 +69,7 @@ func AnswerStore(c echo.Context) error {
 	}
 
 	response := make(map[string]interface{})
+	response["id"] = answer.ID;
 	response["content"] = answer.Content;
 	response["question_id"] = answer.QuestionID;
 	response["user_id"] = answer.UserID;
@@ -124,10 +125,11 @@ func AnswerUpdate(c echo.Context) error {
 		"content": answerPayload.Content,
 		"updated_by": session.User.ID,
 		"updated_name": session.User.FullName,
-		"updated_from": c.Get("apiKey").(*string),
+		"updated_from": *c.Get("apiKey").(*string),
 	})
 
 	response := make(map[string]interface{})
+	response["id"] = answer.ID;
 	response["content"] = answer.Content;
 	response["question_id"] = answer.QuestionID;
 	response["user_id"] = answer.UserID;

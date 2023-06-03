@@ -29,11 +29,11 @@ type Answer struct {
 }
 
 func (a *AnswerPayload) Validate() []utils.ErrorResponse {
-	return validate(a)
+	return answerValidate(a)
 }
 
 func (a *AnswerPayloadUpdate) Validate() []utils.ErrorResponse {
-	return validate(a)
+	return answerValidate(a)
 }
 
 func (a *Answer) Append(payload AnswerPayload, session Session, apiKey string) {
@@ -47,7 +47,7 @@ func (a *Answer) Append(payload AnswerPayload, session Session, apiKey string) {
 	a.CreatedFrom = apiKey
 }
 
-func validate(s interface{}) []utils.ErrorResponse {
+func answerValidate(s interface{}) []utils.ErrorResponse {
 	validate := validator.New()
 	validate.RegisterValidation("uuid", utils.ValidateUUID)
 	err := validate.Struct(s)

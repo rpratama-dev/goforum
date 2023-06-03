@@ -10,4 +10,5 @@ func QuestionRouter(route *echo.Group)  {
 	route.GET("", controllers.UserQuestionIndex)
 	route.GET("/:id", controllers.UserQuestionShow)
 	router.AnswerRouter(route.Group("/:question_id/answers"))
+	router.VoteRouter(route.Group("/:question_id/votes"))
 }

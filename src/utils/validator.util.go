@@ -67,6 +67,11 @@ func ValidateUUIDs(fl validator.FieldLevel) bool {
 	return true
 }
 
+func ValidateVoteType(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+	return value == "up" || value == "down"
+}
+
 func ParseErrors(validationErrors validator.ValidationErrors) []ErrorResponse {
 	errorResponses := make([]ErrorResponse, len(validationErrors))
 	for i, ve := range validationErrors {
