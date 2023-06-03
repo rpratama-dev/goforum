@@ -34,7 +34,7 @@ type User struct {
 	BaseModelID
 	BaseUser
 	Password     	string 			`json:"-" validate:"required,min=8,strong_password" gorm:"not null"`
-	VerifiedToken string 			`json:"-" gorm:"default:null"`
+	VerifiedToken string 			`json:"only_for_testing" gorm:"default:null"`
 	IsVerified 		bool 				`json:"is_verified"`
 	VerifiedAt 		*time.Time	`json:"verified_at" gorm:"type:timestamp without time zone;default:null"` 
 	BaseModelAudit
