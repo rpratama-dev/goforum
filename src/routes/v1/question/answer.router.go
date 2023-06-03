@@ -8,4 +8,5 @@ import (
 func AnswerRouter(route *echo.Group)  {
 	route.POST("", controllers.AnswerStore)
 	route.PUT("/:answer_id", controllers.AnswerUpdate)
+	route.POST("/:answer_id/votes", controllers.AnswerVoteStore)
 }

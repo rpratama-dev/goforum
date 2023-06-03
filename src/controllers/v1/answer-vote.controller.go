@@ -10,14 +10,15 @@ import (
 	"github.com/rpratama-dev/mymovie/src/utils"
 )
 
-func QuestionVoteStore(c echo.Context) error {
+func AnswerVoteStore(c echo.Context) error {
 	defer utils.DeferHandler(c)
 	session := c.Get("session").(*models.Session)
 
 	// Bind user input & validate
-	var votePayload models.QuestionVotePayload
+	var votePayload models.AnswerVotePayload
 	c.Bind(&votePayload)
 	votePayload.QuestionID = c.Param("question_id")
+	votePayload.AnswerID = c.Param("answer_id")
 
 	// Start validation input
 	errValidation := votePayload.Validate()
@@ -29,22 +30,23 @@ func QuestionVoteStore(c echo.Context) error {
 		})
 	}
 
+	// Validate is question still active
 	var total int64 = 0
 	// Start to validate if user already answered this question
-	var questionVote models.QuestionVote
-	questionVote.VoteType = votePayload.VoteType
-	database.Conn.Preload("Question").Where(map[string]interface{}{
-		"question_id": votePayload.QuestionID,
+	var answerVote models.AnswerVote
+	answerVote.VoteType = votePayload.VoteType
+	database.Conn.Preload("Answer").Where(map[string]interface{}{
+		"answer_id": votePayload.AnswerID,
 		"user_id": session.User.ID,
-	}).First(&questionVote).Count(&total)
-	if !questionVote.Question.IsActive {
+	}).First(&answerVote).Count(&total)
+	if !answerVote.Answer.IsActive {
 		panic(utils.PanicPayload{
-			Message: "Unable to vote, your selected question has been archived",
+			Message: "Unable to vote, your selected answer has been archived",
 			HttpStatus: http.StatusInternalServerError,
 		})
-	} else if total > 0 && questionVote.Question.IsActive {
+	} else if total > 0 {
 		// Update record if already vote
-		result := database.Conn.Model(&questionVote).Updates(map[string]interface{}{
+		result := database.Conn.Model(&answerVote).Updates(map[string]interface{}{
 			"vote_type": votePayload.VoteType,
 			"updated_by": session.User.ID,
 			"updated_name": session.User.FullName,
@@ -58,8 +60,8 @@ func QuestionVoteStore(c echo.Context) error {
 		}
 	} else {
 		// Create new record if already vote
-		questionVote.Append(votePayload, *session, *c.Get("apiKey").(*string))
-		result := database.Conn.Create(&questionVote)
+		answerVote.Append(votePayload, *session, *c.Get("apiKey").(*string))
+		result := database.Conn.Create(&answerVote)
 		if (result.Error != nil) {
 			panic(utils.PanicPayload{
 				Message: result.Error.Error(),
@@ -69,12 +71,12 @@ func QuestionVoteStore(c echo.Context) error {
 	}
 
 	response := make(map[string]interface{})
-	response["id"] = questionVote.ID;
-	response["vote"] = questionVote.VoteType;
-	response["question_id"] = questionVote.QuestionID;
+	response["id"] = answerVote.ID;
+	response["vote"] = answerVote.VoteType;
+	response["answer_id"] = answerVote.AnswerID;
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Success add vote to user",
-		Data: questionVote,
+		Data: answerVote,
 	})
 }
