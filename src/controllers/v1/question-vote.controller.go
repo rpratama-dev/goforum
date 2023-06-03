@@ -73,7 +73,7 @@ func QuestionVoteStore(c echo.Context) error {
 	response["vote"] = questionVote.VoteType;
 	response["question_id"] = questionVote.QuestionID;
 
-	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "Success add vote to user",
 		Data: questionVote,
 	})

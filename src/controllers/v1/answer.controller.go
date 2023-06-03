@@ -134,8 +134,70 @@ func AnswerUpdate(c echo.Context) error {
 	response["question_id"] = answer.QuestionID;
 	response["user_id"] = answer.UserID;
 
-	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
-		Message: "Success create answer",
+	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+		Message: "Success update answer",
 		Data: response,
+	})
+}
+
+func AnswerPatch(c echo.Context) error {
+	defer utils.DeferHandler(c)
+	session := c.Get("session").(*models.Session)
+
+	// Bind user input & validate questionId
+	var patchPayload models.AnswerPayloadPatch
+	c.Bind(&patchPayload)
+	patchPayload.QuestionID = c.Param("question_id")
+	patchPayload.AnswerID = c.Param("answer_id")
+
+	// Start validation input
+	errValidation := patchPayload.Validate()
+	if (errValidation != nil) {
+		panic(utils.PanicPayload{
+			Message: "Validation Error",
+			Data: errValidation,
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+
+	// Start to validate if user already answered this question
+	var answer models.Answer
+	result := database.Conn.Preload("Question").Where(map[string]interface{}{
+		"question_id": patchPayload.QuestionID,
+		"id": patchPayload.AnswerID,
+	}).First(&answer)
+
+	if (result.Error != nil || !answer.Question.IsActive || answer.IsTheBest) {
+		message := "Can't change answer for inactive question"
+		if (answer.IsTheBest) {
+			message = "You'r answer already mark as the best, so you can't edit"
+		} else if result.Error != nil {
+			message = result.Error.Error() 
+		}
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+
+	// Only user created question can mark as the best answer
+	if answer.Question.UserID != session.User.ID {
+		panic(utils.PanicPayload{
+			Message: "only the question owner can choose the best answer",
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+
+	// Update record
+	database.Conn.Model(&answer).Updates(map[string]interface{}{
+		"is_best_answer": true,
+		"updated_by": session.User.ID,
+		"updated_name": session.User.FullName,
+		"updated_from": *c.Get("apiKey").(*string),
+	})
+
+	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+		Message: "Success mark as best answer",
+		Data: answer,
 	})
 }

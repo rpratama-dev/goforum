@@ -62,7 +62,7 @@ func QuestionCommentStore(c echo.Context) error {
 	response["content"] = questionComment.Content
 	response["question_id"] = questionComment.QuestionID
 
-	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "Success add a comment for selected question",
 		Data: response,
 	})

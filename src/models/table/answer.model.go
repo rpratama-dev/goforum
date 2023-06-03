@@ -11,10 +11,14 @@ type AnswerPayload struct {
 	QuestionID  	string		`json:"question_id" form:"question_id" validate:"uuid,required"`
 }
 
-type AnswerPayloadUpdate struct {
-	Content				string 		`json:"content" form:"content" validate:"required,min=10" gorm:"not null"`
+type AnswerPayloadPatch struct {
 	QuestionID  	string		`json:"question_id" form:"question_id" validate:"uuid,required"`
 	AnswerID  		string		`json:"answer_id" form:"answer_id" validate:"uuid,required"`
+}
+
+type AnswerPayloadUpdate struct {
+	Content				string 		`json:"content" form:"content" validate:"required,min=10" gorm:"not null"`
+	AnswerPayloadPatch
 }
 
 type Answer struct {
@@ -35,6 +39,10 @@ func (a *AnswerPayload) Validate() []utils.ErrorResponse {
 }
 
 func (a *AnswerPayloadUpdate) Validate() []utils.ErrorResponse {
+	return answerValidate(a)
+}
+
+func (a *AnswerPayloadPatch) Validate() []utils.ErrorResponse {
 	return answerValidate(a)
 }
 
