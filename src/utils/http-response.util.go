@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"net/http"
+	"runtime"
+
 	"github.com/labstack/echo/v4"
 	models "github.com/rpratama-dev/mymovie/src/models/http"
 )
@@ -13,15 +16,28 @@ type PanicPayload struct {
 
 func DeferHandler(c echo.Context)  {
 	if r := recover(); r != nil {
-		pyd := r.(PanicPayload)
-		var errorData interface{}
-		if (pyd.Data != nil) {
-			errorData = pyd.Data
+		var message string = "Unexpected types or errors"
+		var data interface{} = nil
+		var httpStatus int = http.StatusInternalServerError
+
+		switch payload := r.(type) {
+		case PanicPayload:
+				// The err is an instance of utils.PanicPayload
+			message = payload.Message
+			httpStatus = payload.HttpStatus
+			if (payload.Data != nil) {
+				data = payload.Data
+			}
+		case *runtime.TypeAssertionError:
+			message = payload.Error()
+		case string:
+			message = payload;
 		}
+
 		// Handle the panic here
-		c.JSON(pyd.HttpStatus, models.BaseResponse{
-			Message: pyd.Message,
-			Data: errorData,
+		c.JSON(httpStatus, models.BaseResponse{
+			Message: message,
+			Data: data,
 		})
 	}
 }

@@ -50,7 +50,6 @@ func ValidateStrongPassword(fl validator.FieldLevel) bool {
 	return true
 }
 
-
 func ValidateUUID(fl validator.FieldLevel) bool {
 	str := fl.Field().Interface().(string)
 	_, err := uuid.Parse(str)
