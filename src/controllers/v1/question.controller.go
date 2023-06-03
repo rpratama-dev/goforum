@@ -278,6 +278,11 @@ func QuestionShow(c echo.Context) error  {
 		})
 	}
 
+	question.CalculateScore()
+	for i := range *question.Answers {
+		(*question.Answers)[i].CalculateScore()
+	}
+
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Success show question by id",
 		Data: question,

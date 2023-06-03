@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/rpratama-dev/goforum/src/utils"
@@ -26,11 +28,12 @@ type Answer struct {
 	Content				string 						`json:"content" form:"content" gorm:"not null"`
 	QuestionID  	uuid.UUID					`json:"question_id" form:"question_id" gorm:"type:uuid,index,not null"`
 	IsTheBest			bool							`json:"is_the_best"`
-	Question    	*Question					`gorm:"foreignKey:QuestionID" json:"question,omitempty"`
-	UserID      	uuid.UUID					`gorm:"type:uuid;index;not null" json:"user_id"`
-	User        	*User      				`gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Question    	*Question					`json:"question,omitempty" gorm:"foreignKey:QuestionID"`
+	UserID      	uuid.UUID					`json:"user_id" gorm:"type:uuid;index;not null"`
+	User        	*User      				`json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Comments 			*[]AnswerComment	`json:"comments,omitempty"`
 	Votes 				*[]AnswerVote			`json:"votes,omitempty"`
+	Score					uint64						`json:"score" gorm:"-"`
 	BaseModelAudit
 }
 
@@ -55,6 +58,25 @@ func (a *Answer) Append(payload AnswerPayload, session Session, apiKey string) {
 	a.CreatedBy = &session.User.ID
 	a.CreatedName = session.User.FullName
 	a.CreatedFrom = apiKey
+}
+
+func (q *Answer) CalculateScore() {
+	var upVotes, downVotes uint64
+	if q.Votes != nil {
+		for _, vote := range *q.Votes {
+			fmt.Println("VoteType", vote.VoteType)
+			if vote.VoteType == "up" {
+				upVotes++
+			} else if vote.VoteType == "down" {
+				downVotes++
+			}
+		}
+	}
+	// Calculate score based on the number of upVotes and downVotes
+	score := (upVotes * 5) - (downVotes * 2)
+
+	fmt.Println("VoteType score", score)
+	q.Score = score
 }
 
 func answerValidate(s interface{}) []utils.ErrorResponse {
