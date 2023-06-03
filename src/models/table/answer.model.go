@@ -19,12 +19,14 @@ type AnswerPayloadUpdate struct {
 
 type Answer struct {
 	BaseModelID
-	Content				string 		`json:"content" form:"content" gorm:"not null"`
-	QuestionID  	uuid.UUID	`json:"question_id" form:"question_id" gorm:"type:uuid,index,not null"`
-	IsTheBest			bool
-	Question    	Question	`gorm:"foreignKey:QuestionID" json:"question"`
-	UserID      	uuid.UUID	`gorm:"type:uuid;index;not null" json:"user_id"`
-	User        	User      `gorm:"foreignKey:UserID" json:"user"`
+	Content				string 						`json:"content" form:"content" gorm:"not null"`
+	QuestionID  	uuid.UUID					`json:"question_id" form:"question_id" gorm:"type:uuid,index,not null"`
+	IsTheBest			bool							`json:"is_the_best"`
+	Question    	*Question					`gorm:"foreignKey:QuestionID" json:"question,omitempty"`
+	UserID      	uuid.UUID					`gorm:"type:uuid;index;not null" json:"user_id"`
+	User        	*User      				`gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Comments 			*[]AnswerComment	`json:"comments,omitempty"`
+	Votes 				*[]AnswerVote			`json:"votes,omitempty"`
 	BaseModelAudit
 }
 

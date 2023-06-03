@@ -15,9 +15,9 @@ type QuestionVote struct {
 	BaseModelID
 	VoteType 				string 		`json:"vote" gorm:"type:varchar(4);default:'up';check:vote_type IN ('up', 'down')"`
 	QuestionID  		uuid.UUID	`gorm:"type:uuid;index;not null" json:"question_id"`
-	Question    		Question	`gorm:"foreignKey:QuestionID" json:"question"`
+	Question    		*Question	`gorm:"foreignKey:QuestionID" json:"question,omitempty"`
 	UserID      		uuid.UUID	`gorm:"type:uuid;index;not null" json:"user_id"`
-	User        		User      `gorm:"foreignKey:UserID" json:"user"`
+	User        		*User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	BaseModelAudit
 }
 

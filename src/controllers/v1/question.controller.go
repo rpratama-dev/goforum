@@ -70,7 +70,7 @@ func UserQuestionStore(c echo.Context) error {
 	question.Title = questionPayload.Title
 	question.Content = questionPayload.Content
 	question.UserID = session.User.ID
-	question.Tags = tags
+	question.Tags = &tags
 	question.IsActive = true
 	question.CreatedBy = &session.User.ID
 	question.CreatedName = session.User.FullName
@@ -183,7 +183,7 @@ func UserQuestionUpdate(c echo.Context) error {
 	}
 
 	// Remove the existing tags from the question
-	if (len(question.Tags) > 0) {
+	if (len(*question.Tags) > 0) {
 		database.Conn.Model(&question).Association("Tags").Delete(question.Tags)
 	}
 
@@ -246,5 +246,40 @@ func UserQuestionDestroy(c echo.Context) error {
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
 		Message: "Success delete question by user",
 		Data: nil,
+	})
+}
+
+func QuestionShow(c echo.Context) error  {
+	defer utils.DeferHandler(c)
+	questionId, err := uuid.Parse(c.Param("question_id"))
+	if err != nil {
+		panic(utils.PanicPayload{
+			Message: "Param must be a uuid",
+			HttpStatus: http.StatusInternalServerError,
+		})
+	}
+	var question models.Question
+	err = database.Conn.
+		Preload("Tags").
+		Preload("User").
+		Preload("Votes").
+		Preload("Comments").
+		Preload("Comments.User").
+		Preload("Answers").
+		Preload("Answers.User").
+		Preload("Answers.Votes").
+		Preload("Answers.Comments").
+		Preload("Answers.Comments.User").
+		First(&question, questionId).Error
+	if err != nil {
+		panic(utils.PanicPayload{
+			Message: err.Error(),
+			HttpStatus: http.StatusNotFound,
+		})
+	}
+
+	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+		Message: "Success show question by id",
+		Data: question,
 	})
 }

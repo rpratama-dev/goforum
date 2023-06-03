@@ -20,9 +20,9 @@ type QuestionComment struct {
 	BaseModelID
 	Content					string		`gorm:"not null" json:"content"`
 	QuestionID  		uuid.UUID	`gorm:"type:uuid;index;not null" json:"question_id"`
-	Question    		Question	`gorm:"foreignKey:QuestionID" json:"question"`
+	Question    		*Question	`gorm:"foreignKey:QuestionID" json:"question,omitempty"`
 	UserID      		uuid.UUID	`gorm:"type:uuid;index;not null" json:"user_id"`
-	User        		User      `gorm:"foreignKey:UserID" json:"user"`
+	User        		*User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	BaseModelAudit
 }
 
