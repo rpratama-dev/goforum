@@ -7,8 +7,8 @@ import (
 )
 
 type AnswerPayload struct {
-	Content				string `json:"content" form:"content" validate:"required,min=10"`
-	QuestionID  	uuid.UUID	`json:"question_id" form:"question_id" gorm:"type:uuid,index,not null"`
+	Content				string 		`json:"content" form:"content" validate:"required,min=10" gorm:"not null"`
+	QuestionID  	uuid.UUID	`json:"question_id" form:"question_id" validate:"required" gorm:"type:uuid,index,not null"`
 }
 
 type Answer struct {
@@ -28,4 +28,14 @@ func (a *AnswerPayload) Validate() []utils.ErrorResponse {
 		return utils.ParseErrors(err.(validator.ValidationErrors))
 	}
 	return nil
+}
+
+func (a *Answer) Append(payload AnswerPayload, session Session, apiKey string) {
+	a.Content = payload.Content
+	a.QuestionID = payload.QuestionID
+	a.UserID = session.User.ID
+	a.IsActive = true
+	a.CreatedBy = &session.User.ID
+	a.CreatedName = session.User.FullName
+	a.CreatedFrom = apiKey
 }

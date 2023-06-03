@@ -10,4 +10,5 @@ func RegisterRoutes(g *echo.Group) {
 	g.Use(middleware.ApiKeyMiddleWare, middleware.AuthMiddleware)
 	UserRouter(g.Group("/users"))
 	TagRouter(g.Group("/tags"))
+	QuestionRouter(g.Group("/questions"))
 }
