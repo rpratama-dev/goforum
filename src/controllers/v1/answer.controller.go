@@ -22,7 +22,7 @@ func AnswerStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := answerPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -37,7 +37,7 @@ func AnswerStore(c echo.Context) error {
 		"question_id": answerPayload.QuestionID,
 		"user_id": session.User.ID,
 	}).First(&answerExist).Count(&count)
-	if (count > 0) {
+	if count > 0 {
 		panic(utils.PanicPayload{
 			Message: "You have already provided an answer to this question",
 			HttpStatus: http.StatusBadRequest,
@@ -50,7 +50,7 @@ func AnswerStore(c echo.Context) error {
 		"id": answerPayload.QuestionID,
 		"is_active": true,
 	}).First(&question)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -61,7 +61,7 @@ func AnswerStore(c echo.Context) error {
 	var answer models.Answer
 	answer.Append(answerPayload, *session, *apiKey)
 	result = database.Conn.Create(&answer)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -92,7 +92,7 @@ func AnswerUpdate(c echo.Context) error {
 
 	// Start validation input
 	errValidation := answerPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -109,9 +109,9 @@ func AnswerUpdate(c echo.Context) error {
 			"user_id": session.User.ID,
 			"id": answerPayload.AnswerID,
 		}).First(&answer)
-	if (result.Error != nil || !answer.Question.IsActive || answer.IsTheBest) {
+	if result.Error != nil || !answer.Question.IsActive || answer.IsTheBest {
 		message := "Can't change answer for inactive question"
-		if (answer.IsTheBest) {
+		if answer.IsTheBest {
 			message = "You'r answer mark as the best, so you can't edit"
 		} else if result.Error != nil {
 			message = result.Error.Error() 
@@ -154,7 +154,7 @@ func AnswerPatch(c echo.Context) error {
 
 	// Start validation input
 	errValidation := patchPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -174,7 +174,7 @@ func AnswerPatch(c echo.Context) error {
 	// Only user created question can mark as the best answer
 	if result.Error == nil || answer.Question.UserID != session.User.ID {
 		message := "only the question owner can choose the best answer"
-		if (result.Error == nil) {
+		if result.Error == nil {
 			message = result.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -183,9 +183,9 @@ func AnswerPatch(c echo.Context) error {
 		})
 	}
 
-	if (result.Error != nil || !answer.Question.IsActive || answer.IsTheBest) {
+	if result.Error != nil || !answer.Question.IsActive || answer.IsTheBest {
 		message := "Can't change answer for inactive question"
-		if (answer.IsTheBest) {
+		if answer.IsTheBest {
 			message = "You'r answer already mark as the best, so you can't edit"
 		} else if result.Error != nil {
 			message = result.Error.Error()

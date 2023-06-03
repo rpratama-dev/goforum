@@ -18,7 +18,7 @@ func AuthSignUp(c echo.Context) error {
 
 	// Start Validation
 	errValidation := userInput.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -52,7 +52,7 @@ func AuthSignIn(c echo.Context) error {
 
 	// Start Validation
 	errValidation := userInput.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			HttpStatus: http.StatusBadRequest,
@@ -63,7 +63,7 @@ func AuthSignIn(c echo.Context) error {
 	var user = models.User{}
 	user.Email = userInput.Email 
 	err := user.GetByEmail()
-	if (err != nil) {
+	if err != nil {
 		panic(utils.PanicPayload{
 			Message: "Invalid email / password",
 			HttpStatus: http.StatusBadRequest,
@@ -72,7 +72,7 @@ func AuthSignIn(c echo.Context) error {
 
 	// Check if password is match
 	isMatch := userInput.IsPasswordMatch(user.Password)
-	if (!isMatch) {
+	if !isMatch {
 		panic(utils.PanicPayload{
 			Message: "Invalid email / password",
 			HttpStatus: http.StatusBadRequest,
@@ -80,9 +80,9 @@ func AuthSignIn(c echo.Context) error {
 	}
 
 	// Only verified and active user can sign-in
-	if (!user.IsVerified || !user.IsActive) {
+	if !user.IsVerified || !user.IsActive {
 		message := "You'r account is inactive please contact web administrator"
-		if (!user.IsVerified) {
+		if !user.IsVerified {
 			message = "Please verified you'r account first, before try sign-in"
 		}
 		panic(utils.PanicPayload{
@@ -140,7 +140,7 @@ func AuthVerify(c echo.Context) error {
 	verifyToken := c.Param("token")
 	var user models.User
 	err := user.GetByToken(verifyToken)
-	if (err != nil) {
+	if err != nil {
 		panic(utils.PanicPayload{
 			Message: "Failed to verified user registration",
 			HttpStatus: http.StatusBadRequest,

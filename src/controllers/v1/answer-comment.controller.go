@@ -22,7 +22,7 @@ func AnswerCommentStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := answerCommentPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -39,9 +39,9 @@ func AnswerCommentStore(c echo.Context) error {
 			"question_id": answerCommentPayload.QuestionID,
 			"is_active": true,
 		}).First(&answer)
-	if (result.Error != nil || !answer.Question.IsActive) {
+	if result.Error != nil || !answer.Question.IsActive {
 		message := "Unable to add comment for inactive question"
-		if (result.Error != nil) {
+		if result.Error != nil {
 			message = result.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -54,7 +54,7 @@ func AnswerCommentStore(c echo.Context) error {
 	var questionComment models.AnswerComment
 	questionComment.Append(answerCommentPayload, *session, *c.Get("apiKey").(*string))
 	result = database.Conn.Create(&questionComment)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -85,7 +85,7 @@ func AnswerCommentUpdate(c echo.Context) error {
 
 	// Start validation input
 	errValidation := answerCommentPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -107,15 +107,15 @@ func AnswerCommentUpdate(c echo.Context) error {
 	message := "";
 	if result.Error != nil {
 		message = result.Error.Error()
-	} else if (!answerComment.Answer.IsActive) {
+	} else if !answerComment.Answer.IsActive {
 		message = "Unable to update comment for inactive answer"
-	} else if (answerComment.Answer.Question == nil) {
+	} else if answerComment.Answer.Question == nil {
 		message = "Question related with this answer not found"
-	} else if (!answerComment.Answer.Question.IsActive) {
+	} else if !answerComment.Answer.Question.IsActive {
 		message = "Unable to update comment for inactive question"
 	}
 
-	if (message != "") {
+	if message != "" {
 		panic(utils.PanicPayload{
 			Message: message,
 			HttpStatus: http.StatusNotFound,

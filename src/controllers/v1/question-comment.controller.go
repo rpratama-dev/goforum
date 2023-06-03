@@ -21,7 +21,7 @@ func QuestionCommentStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := questionCommentPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -35,9 +35,9 @@ func QuestionCommentStore(c echo.Context) error {
 		"id": questionCommentPayload.QuestionID,
 		"is_active": true,
 	}).First(&question)
-	if (result.Error != nil || !question.IsActive) {
+	if result.Error != nil || !question.IsActive {
 		message := "Unable to add comment for inactive question"
-		if (result.Error != nil) {
+		if result.Error != nil {
 			message = result.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -50,7 +50,7 @@ func QuestionCommentStore(c echo.Context) error {
 	var questionComment models.QuestionComment
 	questionComment.Append(questionCommentPayload, *session, *c.Get("apiKey").(*string))
 	result = database.Conn.Create(&questionComment)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -80,7 +80,7 @@ func QuestionCommentUpdate(c echo.Context) error {
 
 	// Start validation input
 	errValidation := questionCommentPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -97,9 +97,9 @@ func QuestionCommentUpdate(c echo.Context) error {
 			"question_id": questionCommentPayload.QuestionID,
 			"is_active": true,
 		}).First(&questionComment)
-	if (result.Error != nil || !questionComment.Question.IsActive) {
+	if result.Error != nil || !questionComment.Question.IsActive {
 		message := "Unable to update comment for inactive question"
-		if (result.Error != nil) {
+		if result.Error != nil {
 			message = result.Error.Error()
 		}
 		panic(utils.PanicPayload{

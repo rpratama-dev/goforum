@@ -21,7 +21,7 @@ func QuestionVoteStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := votePayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -55,7 +55,7 @@ func QuestionVoteStore(c echo.Context) error {
 			"user_id": session.User.ID,
 		}).First(&questionVote).Count(&total).Error
 
-	if (err != nil) {
+	if err != nil {
 		total = 0
 	}
 
@@ -84,7 +84,7 @@ func QuestionVoteStore(c echo.Context) error {
 		questionVote.Append(votePayload, *session, *c.Get("apiKey").(*string))
 		result := database.Conn.Create(&questionVote)
 
-		if (result.Error != nil) {
+		if result.Error != nil {
 			panic(utils.PanicPayload{
 				Message: result.Error.Error(),
 				HttpStatus: http.StatusInternalServerError,

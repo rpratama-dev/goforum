@@ -74,7 +74,7 @@ func (q *Answer) CalculateScore() {
 	}
 	// Calculate score based on the number of upVotes and downVotes
 	score := (upVotes * 5) - (downVotes * 2)
-	if (score < 0) {
+	if score < 0 {
 		score = 0
 	}
 	fmt.Println("VoteType score", score)

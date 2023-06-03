@@ -37,7 +37,7 @@ func GenerateKeyPair() (bool) {
 	isPrivateExist := isFileExist(privateKeyPath)
 	isPublicExist := isFileExist(privateKeyPath)
 
-	if (isPrivateExist && isPublicExist) {
+	if isPrivateExist && isPublicExist {
 		return true
 	}
 
@@ -99,7 +99,7 @@ func GenerateKeyPair() (bool) {
 
 func GetPublicKey() (string)  {
 	publicKey := ReadFile(publicKeyPath)
-	if (publicKey == nil) {
+	if publicKey == nil {
 		return ""
 	}
 	return string(publicKey)
@@ -107,7 +107,7 @@ func GetPublicKey() (string)  {
 
 func GetPrivateKey() (string)  {
 	privateKey := ReadFile(privateKeyPath)
-	if (privateKey == nil) {
+	if privateKey == nil {
 		return ""
 	}
 	return string(privateKey)

@@ -23,7 +23,7 @@ func UserQuestionIndex(c echo.Context) error {
 			"is_active": true,
 		}).Find(&questions)
 
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -45,7 +45,7 @@ func UserQuestionStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := questionPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -56,9 +56,9 @@ func UserQuestionStore(c echo.Context) error {
 	// Validate input tags is exist
 	var tags []models.Tag
 	resultTag := database.Conn.Where("id IN (?)", questionPayload.Tags).Find(&tags)
-	if (resultTag.Error != nil || (len(tags) != len(questionPayload.Tags))) {
+	if resultTag.Error != nil || (len(tags) != len(questionPayload.Tags)) {
 		message := "Contains invalid tags, please check tag id"
-		if (resultTag.Error != nil) {
+		if resultTag.Error != nil {
 			message = resultTag.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -80,7 +80,7 @@ func UserQuestionStore(c echo.Context) error {
 	result := database.Conn.Create(&question)
 
 	// Check if failed to create question
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -130,7 +130,7 @@ func UserQuestionShow(c echo.Context) error {
 		}).First(&question)
 
 	// Check if failed to create question
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -177,7 +177,7 @@ func UserQuestionUpdate(c echo.Context) error {
 			"user_id": session.UserID.String(),
 			"is_active": true,
 		}).First(&question)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -186,7 +186,7 @@ func UserQuestionUpdate(c echo.Context) error {
 
 	// Start validation input
 	errValidation := questionPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -197,9 +197,9 @@ func UserQuestionUpdate(c echo.Context) error {
 	// Validate input tags is exist
 	var tags []models.Tag
 	resultTag := database.Conn.Where("id IN (?)", questionPayload.Tags).Find(&tags)
-	if (resultTag.Error != nil || (len(tags) != len(questionPayload.Tags))) {
+	if resultTag.Error != nil || (len(tags) != len(questionPayload.Tags)) {
 		message := "Contains invalid tags, please check tag id"
-		if (resultTag.Error != nil) {
+		if resultTag.Error != nil {
 			message = resultTag.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -209,7 +209,7 @@ func UserQuestionUpdate(c echo.Context) error {
 	}
 
 	// Remove the existing tags from the question
-	if (question.Tags != nil && len(*question.Tags) > 0) {
+	if question.Tags != nil && len(*question.Tags) > 0 {
 		database.Conn.Model(&question).Association("Tags").Delete(question.Tags)
 	}
 
@@ -249,7 +249,7 @@ func UserQuestionDestroy(c echo.Context) error {
 		"user_id": session.UserID.String(),
 		"is_active": true,
 	}).First(&question)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -262,7 +262,7 @@ func UserQuestionDestroy(c echo.Context) error {
 	question.DeletedName = session.User.FullName
 	question.DeletedFrom = *apiKey
 	err = question.SoftDelete()
-	if (err != nil) {
+	if err != nil {
 		panic(utils.PanicPayload{
 			Message: err.Error(),
 			HttpStatus: http.StatusInternalServerError,

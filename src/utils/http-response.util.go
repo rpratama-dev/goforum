@@ -25,7 +25,7 @@ func DeferHandler(c echo.Context)  {
 				// The err is an instance of utils.PanicPayload
 			message = payload.Message
 			httpStatus = payload.HttpStatus
-			if (payload.Data != nil) {
+			if payload.Data != nil {
 				data = payload.Data
 			}
 		case *runtime.TypeAssertionError:
