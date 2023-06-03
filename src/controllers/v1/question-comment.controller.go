@@ -42,7 +42,7 @@ func QuestionCommentStore(c echo.Context) error {
 		}
 		panic(utils.PanicPayload{
 			Message: message,
-			HttpStatus: http.StatusBadRequest,
+			HttpStatus: http.StatusNotFound,
 		})
 	}
 
