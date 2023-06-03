@@ -31,7 +31,7 @@ type Claims struct {
 func GenerateJWT(claim ClaimPayload) (string, *Claims, error) {
 	// Load the private key
 	privateKeyBytes := ReadFile(privateKeyPath)
-	if (privateKeyBytes == nil) {
+	if privateKeyBytes == nil {
 		return "", nil, fmt.Errorf("failed to read private key file")
 	}
 

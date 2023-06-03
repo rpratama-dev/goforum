@@ -21,7 +21,7 @@ func QuestionVoteStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := votePayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -29,15 +29,37 @@ func QuestionVoteStore(c echo.Context) error {
 		})
 	}
 
+	// Validate question is exists
+	var question models.Question
+	err := database.Conn.
+		Where(map[string]interface{}{
+			"id": votePayload.QuestionID,
+			"is_active": true,
+		}).First(&question).Error
+
+	if err != nil {
+		panic(utils.PanicPayload{
+			Message: err.Error(),
+			HttpStatus: http.StatusNotFound,
+		})
+	}
+
 	var total int64 = 0
 	// Start to validate if user already answered this question
 	var questionVote models.QuestionVote
 	questionVote.VoteType = votePayload.VoteType
-	database.Conn.Preload("Question").Where(map[string]interface{}{
-		"question_id": votePayload.QuestionID,
-		"user_id": session.User.ID,
-	}).First(&questionVote).Count(&total)
-	if !questionVote.Question.IsActive {
+	err = database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"question_id": votePayload.QuestionID,
+			"user_id": session.User.ID,
+		}).First(&questionVote).Count(&total).Error
+
+	if err != nil {
+		total = 0
+	}
+
+	if questionVote.Question != nil && !questionVote.Question.IsActive {
 		panic(utils.PanicPayload{
 			Message: "Unable to vote, your selected question has been archived",
 			HttpStatus: http.StatusInternalServerError,
@@ -50,17 +72,19 @@ func QuestionVoteStore(c echo.Context) error {
 			"updated_name": session.User.FullName,
 			"updated_from": *c.Get("apiKey").(*string),
 		})
-		if (result.Error != nil) {
+		if result.Error != nil {
 			panic(utils.PanicPayload{
 				Message: result.Error.Error(),
 				HttpStatus: http.StatusInternalServerError,
 			})
 		}
+		
 	} else {
 		// Create new record if already vote
 		questionVote.Append(votePayload, *session, *c.Get("apiKey").(*string))
 		result := database.Conn.Create(&questionVote)
-		if (result.Error != nil) {
+
+		if result.Error != nil {
 			panic(utils.PanicPayload{
 				Message: result.Error.Error(),
 				HttpStatus: http.StatusInternalServerError,
@@ -73,7 +97,7 @@ func QuestionVoteStore(c echo.Context) error {
 	response["vote"] = questionVote.VoteType;
 	response["question_id"] = questionVote.QuestionID;
 
-	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "Success add vote to user",
 		Data: questionVote,
 	})

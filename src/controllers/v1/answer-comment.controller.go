@@ -22,7 +22,7 @@ func AnswerCommentStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := answerCommentPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -32,13 +32,16 @@ func AnswerCommentStore(c echo.Context) error {
 
 	// Check if question is exist & active
 	var answer models.Answer
-	result := database.Conn.Preload("Question").Where(map[string]interface{}{
-		"id": answerCommentPayload.AnswerID,
-		"is_active": true,
-	}).First(&answer)
-	if (result.Error != nil || !answer.Question.IsActive) {
+	result := database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"id": answerCommentPayload.AnswerID,
+			"question_id": answerCommentPayload.QuestionID,
+			"is_active": true,
+		}).First(&answer)
+	if result.Error != nil || !answer.Question.IsActive {
 		message := "Unable to add comment for inactive question"
-		if (result.Error != nil) {
+		if result.Error != nil {
 			message = result.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -51,7 +54,7 @@ func AnswerCommentStore(c echo.Context) error {
 	var questionComment models.AnswerComment
 	questionComment.Append(answerCommentPayload, *session, *c.Get("apiKey").(*string))
 	result = database.Conn.Create(&questionComment)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -63,7 +66,7 @@ func AnswerCommentStore(c echo.Context) error {
 	response["content"] = questionComment.Content
 	response["answer_id"] = questionComment.AnswerID
 
-	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "Success add a comment for selected question",
 		Data: response,
 	})
@@ -82,7 +85,7 @@ func AnswerCommentUpdate(c echo.Context) error {
 
 	// Start validation input
 	errValidation := answerCommentPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -92,18 +95,27 @@ func AnswerCommentUpdate(c echo.Context) error {
 
 	// Check if question is exist & active
 	var answerComment models.AnswerComment
-	result := database.Conn.Preload("Answer").Preload("Answer.Question").Where(map[string]interface{}{
-		"id": answerCommentPayload.CommentID,
-		"answer_id": answerCommentPayload.AnswerID,
-		"is_active": true,
-	}).First(&answerComment)
-	if (result.Error != nil || !answerComment.Answer.IsActive || !answerComment.Answer.Question.IsActive) {
-		message := "Unable to update comment for inactive question"
-		if (result.Error != nil) {
-			message = result.Error.Error()
-		} else if !answerComment.Answer.IsActive {
-			message = "Unable to update comment for inactive answer"
-		}
+	result := database.Conn.
+		Preload("Answer").
+		Preload("Answer.Question", "id = ?", answerCommentPayload.QuestionID).
+		Where(map[string]interface{}{
+			"id": answerCommentPayload.CommentID,
+			"answer_id": answerCommentPayload.AnswerID,
+			"is_active": true,
+		}).First(&answerComment)
+
+	message := "";
+	if result.Error != nil {
+		message = result.Error.Error()
+	} else if !answerComment.Answer.IsActive {
+		message = "Unable to update comment for inactive answer"
+	} else if answerComment.Answer.Question == nil {
+		message = "Question related with this answer not found"
+	} else if !answerComment.Answer.Question.IsActive {
+		message = "Unable to update comment for inactive question"
+	}
+
+	if message != "" {
 		panic(utils.PanicPayload{
 			Message: message,
 			HttpStatus: http.StatusNotFound,

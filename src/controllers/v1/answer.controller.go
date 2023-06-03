@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -22,7 +23,7 @@ func AnswerStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := answerPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -37,7 +38,7 @@ func AnswerStore(c echo.Context) error {
 		"question_id": answerPayload.QuestionID,
 		"user_id": session.User.ID,
 	}).First(&answerExist).Count(&count)
-	if (count > 0) {
+	if count > 0 {
 		panic(utils.PanicPayload{
 			Message: "You have already provided an answer to this question",
 			HttpStatus: http.StatusBadRequest,
@@ -50,7 +51,7 @@ func AnswerStore(c echo.Context) error {
 		"id": answerPayload.QuestionID,
 		"is_active": true,
 	}).First(&question)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -61,7 +62,7 @@ func AnswerStore(c echo.Context) error {
 	var answer models.Answer
 	answer.Append(answerPayload, *session, *apiKey)
 	result = database.Conn.Create(&answer)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -92,7 +93,7 @@ func AnswerUpdate(c echo.Context) error {
 
 	// Start validation input
 	errValidation := answerPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -100,16 +101,18 @@ func AnswerUpdate(c echo.Context) error {
 		})
 	}
 
-	// Start to validate if user already answered this question
+	// Start to validate answer
 	var answer models.Answer
-	result := database.Conn.Preload("Question").Where(map[string]interface{}{
-		"question_id": answerPayload.QuestionID,
-		"user_id": session.User.ID,
-		"id": answerPayload.AnswerID,
-	}).First(&answer)
-	if (result.Error != nil || !answer.Question.IsActive || answer.IsTheBest) {
+	result := database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"question_id": answerPayload.QuestionID,
+			"user_id": session.User.ID,
+			"id": answerPayload.AnswerID,
+		}).First(&answer)
+	if result.Error != nil || !answer.Question.IsActive || answer.IsTheBest {
 		message := "Can't change answer for inactive question"
-		if (answer.IsTheBest) {
+		if answer.IsTheBest {
 			message = "You'r answer mark as the best, so you can't edit"
 		} else if result.Error != nil {
 			message = result.Error.Error() 
@@ -134,8 +137,95 @@ func AnswerUpdate(c echo.Context) error {
 	response["question_id"] = answer.QuestionID;
 	response["user_id"] = answer.UserID;
 
-	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
-		Message: "Success create answer",
+	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+		Message: "Success update answer",
 		Data: response,
+	})
+}
+
+func AnswerPatch(c echo.Context) error {
+	defer utils.DeferHandler(c)
+	session := c.Get("session").(*models.Session)
+
+	// Bind user input & validate questionId
+	var patchPayload models.AnswerPayloadPatch
+	c.Bind(&patchPayload)
+	patchPayload.QuestionID = c.Param("question_id")
+	patchPayload.AnswerID = c.Param("answer_id")
+
+	// Start validation input
+	errValidation := patchPayload.Validate()
+	if errValidation != nil {
+		panic(utils.PanicPayload{
+			Message: "Validation Error",
+			Data: errValidation,
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+	
+	// Start to validate answer
+	var countBestAnswer int64
+	var bestAnswer models.Answer
+	result := database.Conn.
+		Where(map[string]interface{}{
+			"question_id": patchPayload.QuestionID,
+			"is_the_best": true,
+		}).First(&bestAnswer).Count(&countBestAnswer)
+
+	// Only user created question can mark as the best answer
+	if result.Error == nil {
+		panic(utils.PanicPayload{
+			Message: "Can't mark multiple best answer",
+			HttpStatus: http.StatusUnauthorized,
+		})
+	}
+
+	// Start to validate if user already answered this question
+	var answer models.Answer
+	result = database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"question_id": patchPayload.QuestionID,
+			"id": patchPayload.AnswerID,
+		}).First(&answer)
+
+	fmt.Println("Here", answer.Question != nil)
+	// Only user created question can mark as the best answer
+	if result.Error != nil || answer.Question == nil || answer.Question.UserID != session.User.ID {
+		message := "only the question owner can choose the best answer"
+		if result.Error != nil {
+			message = result.Error.Error()
+		}
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusUnauthorized,
+		})
+	}
+
+
+	if result.Error != nil || (answer.Question != nil && !answer.Question.IsActive) || answer.IsTheBest {
+		message := "Can't change answer for inactive question"
+		if answer.IsTheBest {
+			message = "You'r answer already mark as the best, so you can't edit"
+		} else if result.Error != nil {
+			message = result.Error.Error()
+		}
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+
+	// Update record
+	database.Conn.Model(&answer).Updates(map[string]interface{}{
+		"is_the_best": true,
+		"updated_by": session.User.ID,
+		"updated_name": session.User.FullName,
+		"updated_from": *c.Get("apiKey").(*string),
+	})
+
+	return c.JSON(http.StatusOK, httpModels.BaseResponse{
+		Message: "Success mark as best answer",
+		Data: answer,
 	})
 }
