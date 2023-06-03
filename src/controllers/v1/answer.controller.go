@@ -3,7 +3,6 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	httpModels "github.com/rpratama-dev/mymovie/src/models/http"
 	models "github.com/rpratama-dev/mymovie/src/models/table"
@@ -19,14 +18,7 @@ func AnswerStore(c echo.Context) error {
 	// Bind user input & validate questionId
 	var answerPayload models.AnswerPayload
 	c.Bind(&answerPayload)
-	questionId, err := uuid.Parse(c.Param("questionId"))
-	if err != nil {
-		panic(utils.PanicPayload{
-			Message: "Param must be a uuid",
-			HttpStatus: http.StatusBadRequest,
-		})
-	}
-	answerPayload.QuestionID = questionId
+	answerPayload.QuestionID = c.Param("question_id")
 
 	// Start validation input
 	errValidation := answerPayload.Validate()
@@ -75,6 +67,65 @@ func AnswerStore(c echo.Context) error {
 			HttpStatus: http.StatusInternalServerError,
 		})
 	}
+
+	response := make(map[string]interface{})
+	response["content"] = answer.Content;
+	response["question_id"] = answer.QuestionID;
+	response["user_id"] = answer.UserID;
+
+	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
+		Message: "Success create answer",
+		Data: response,
+	})
+}
+
+func AnswerUpdate(c echo.Context) error {
+	defer utils.DeferHandler(c)
+	session := c.Get("session").(*models.Session)
+
+	// Bind user input & validate questionId
+	var answerPayload models.AnswerPayloadUpdate
+	c.Bind(&answerPayload)
+	answerPayload.QuestionID = c.Param("question_id")
+	answerPayload.AnswerID = c.Param("answer_id")
+
+	// Start validation input
+	errValidation := answerPayload.Validate()
+	if (errValidation != nil) {
+		panic(utils.PanicPayload{
+			Message: "Validation Error",
+			Data: errValidation,
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+
+	// Start to validate if user already answered this question
+	var answer models.Answer
+	result := database.Conn.Preload("Question").Where(map[string]interface{}{
+		"question_id": answerPayload.QuestionID,
+		"user_id": session.User.ID,
+		"id": answerPayload.AnswerID,
+	}).First(&answer)
+	if (result.Error != nil || !answer.Question.IsActive || answer.IsTheBest) {
+		message := "Can't change answer for inactive question"
+		if (answer.IsTheBest) {
+			message = "You'r answer mark as the best, so you can't edit"
+		} else if result.Error != nil {
+			message = result.Error.Error() 
+		}
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+
+	// Update record
+	database.Conn.Model(&answer).Updates(map[string]interface{}{
+		"content": answerPayload.Content,
+		"updated_by": session.User.ID,
+		"updated_name": session.User.FullName,
+		"updated_from": c.Get("apiKey").(*string),
+	})
 
 	response := make(map[string]interface{})
 	response["content"] = answer.Content;

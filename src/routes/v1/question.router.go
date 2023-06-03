@@ -9,5 +9,5 @@ import (
 func QuestionRouter(route *echo.Group)  {
 	route.GET("", controllers.UserQuestionIndex)
 	route.GET("/:id", controllers.UserQuestionShow)
-	router.AnswerRouter(route.Group("/:questionId/answers"))
+	router.AnswerRouter(route.Group("/:question_id/answers"))
 }

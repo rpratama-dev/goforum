@@ -6,9 +6,6 @@ import (
 )
 
 func AnswerRouter(route *echo.Group)  {
-	// route.GET("", controllers.AnswerStore)
 	route.POST("", controllers.AnswerStore)
-	// route.GET("/:id", controllers.UserQuestionShow)
-	// route.PUT("/:id", controllers.UserQuestionUpdate)
-	// route.DELETE("/:id", controllers.UserQuestionDestroy)
+	route.PUT("/:answer_id", controllers.AnswerUpdate)
 }

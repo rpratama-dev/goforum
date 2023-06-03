@@ -16,7 +16,7 @@ type PanicPayload struct {
 
 func DeferHandler(c echo.Context)  {
 	if r := recover(); r != nil {
-		var message string = "Unexpected types or errors"
+		var message string = "Unexpected types of errors"
 		var data interface{} = nil
 		var httpStatus int = http.StatusInternalServerError
 
