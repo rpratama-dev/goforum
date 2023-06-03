@@ -24,7 +24,7 @@ func InitConfig() {
 	// Load the .env file
 	goEnv := os.Getenv("GO_ENV")
 	
-	if (goEnv != "production") {
+	if goEnv != "production" {
 		// Load env from `.env` file 
 		err := godotenv.Load()
 		if err != nil {
@@ -34,7 +34,7 @@ func InitConfig() {
 
 	// Create a Config instance and populate it with the environment variables
 	Env.Port = os.Getenv("PORT")
-	if (Env.Port == "") {
+	if Env.Port == "" {
 		// Set default port
 		Env.Port = "8080"
 	}

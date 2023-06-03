@@ -13,15 +13,17 @@ import (
 
 func UserQuestionIndex(c echo.Context) error {
 	defer utils.DeferHandler(c)
-
 	session := c.Get("session").(*models.Session)
 	var questions []models.Question
-	result := database.Conn.Preload("Tags").Preload("User").Where(map[string]interface{}{
-		"user_id": session.UserID.String(),
-		"is_active": true,
-	}).Find(&questions)
+	result := database.Conn.
+		Preload("Tags").
+		Preload("User").
+		Where(map[string]interface{}{
+			"user_id": session.UserID.String(),
+			"is_active": true,
+		}).Find(&questions)
 
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -43,7 +45,7 @@ func UserQuestionStore(c echo.Context) error {
 
 	// Start validation input
 	errValidation := questionPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -54,9 +56,9 @@ func UserQuestionStore(c echo.Context) error {
 	// Validate input tags is exist
 	var tags []models.Tag
 	resultTag := database.Conn.Where("id IN (?)", questionPayload.Tags).Find(&tags)
-	if (resultTag.Error != nil || (len(tags) != len(questionPayload.Tags))) {
+	if resultTag.Error != nil || (len(tags) != len(questionPayload.Tags)) {
 		message := "Contains invalid tags, please check tag id"
-		if (resultTag.Error != nil) {
+		if resultTag.Error != nil {
 			message = resultTag.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -78,7 +80,7 @@ func UserQuestionStore(c echo.Context) error {
 	result := database.Conn.Create(&question)
 
 	// Check if failed to create question
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -87,7 +89,10 @@ func UserQuestionStore(c echo.Context) error {
 
 	// Output the created question with tags & user
 	var savedQuestion models.Question
-	database.Conn.Preload("Tags").Preload("User").First(&savedQuestion, question.ID)
+	database.Conn.
+		Preload("Tags").
+		Preload("User").
+		First(&savedQuestion, question.ID)
 
 	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "Success create question by user",
@@ -107,18 +112,36 @@ func UserQuestionShow(c echo.Context) error {
 	}
 
 	var question models.Question
-	result := database.Conn.Preload("Tags").Preload("User").Where(map[string]interface{}{
-		"id": c.Param("id"),
-		"user_id": session.UserID.String(),
-		"is_active": true,
-	}).First(&question)
+	result := database.Conn.
+		Preload("Tags").
+		Preload("User").
+		Preload("Votes").
+		Preload("Comments").
+		Preload("Comments.User").
+		Preload("Answers").
+		Preload("Answers.User").
+		Preload("Answers.Votes").
+		Preload("Answers.Comments").
+		Preload("Answers.Comments.User").
+		Where(map[string]interface{}{
+			"id": c.Param("id"),
+			"user_id": session.UserID.String(),
+			"is_active": true,
+		}).First(&question)
 
 	// Check if failed to create question
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
 		})
+	}
+
+	question.CalculateScore()
+	if question.Answers != nil {
+		for i := range *question.Answers {
+			(*question.Answers)[i].CalculateScore()
+		}
 	}
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{
@@ -146,12 +169,15 @@ func UserQuestionUpdate(c echo.Context) error {
 
 	// Find Question
 	var question models.Question
-	result := database.Conn.Preload("Tags").Preload("User").Where(map[string]interface{}{
-		"id": questionId,
-		"user_id": session.UserID.String(),
-		"is_active": true,
-	}).First(&question)
-	if (result.Error != nil) {
+	result := database.Conn.
+		Preload("Tags").
+		Preload("User").
+		Where(map[string]interface{}{
+			"id": questionId,
+			"user_id": session.UserID.String(),
+			"is_active": true,
+		}).First(&question)
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -160,7 +186,7 @@ func UserQuestionUpdate(c echo.Context) error {
 
 	// Start validation input
 	errValidation := questionPayload.Validate()
-	if (errValidation != nil) {
+	if errValidation != nil {
 		panic(utils.PanicPayload{
 			Message: "Validation Error",
 			Data: errValidation,
@@ -171,9 +197,9 @@ func UserQuestionUpdate(c echo.Context) error {
 	// Validate input tags is exist
 	var tags []models.Tag
 	resultTag := database.Conn.Where("id IN (?)", questionPayload.Tags).Find(&tags)
-	if (resultTag.Error != nil || (len(tags) != len(questionPayload.Tags))) {
+	if resultTag.Error != nil || (len(tags) != len(questionPayload.Tags)) {
 		message := "Contains invalid tags, please check tag id"
-		if (resultTag.Error != nil) {
+		if resultTag.Error != nil {
 			message = resultTag.Error.Error()
 		}
 		panic(utils.PanicPayload{
@@ -183,7 +209,7 @@ func UserQuestionUpdate(c echo.Context) error {
 	}
 
 	// Remove the existing tags from the question
-	if (len(*question.Tags) > 0) {
+	if question.Tags != nil && len(*question.Tags) > 0 {
 		database.Conn.Model(&question).Association("Tags").Delete(question.Tags)
 	}
 
@@ -223,7 +249,7 @@ func UserQuestionDestroy(c echo.Context) error {
 		"user_id": session.UserID.String(),
 		"is_active": true,
 	}).First(&question)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -236,7 +262,7 @@ func UserQuestionDestroy(c echo.Context) error {
 	question.DeletedName = session.User.FullName
 	question.DeletedFrom = *apiKey
 	err = question.SoftDelete()
-	if (err != nil) {
+	if err != nil {
 		panic(utils.PanicPayload{
 			Message: err.Error(),
 			HttpStatus: http.StatusInternalServerError,
@@ -270,12 +296,19 @@ func QuestionShow(c echo.Context) error  {
 		Preload("Answers.Votes").
 		Preload("Answers.Comments").
 		Preload("Answers.Comments.User").
-		First(&question, questionId).Error
+		First(&question, "id = ?", questionId).Error
 	if err != nil {
 		panic(utils.PanicPayload{
 			Message: err.Error(),
 			HttpStatus: http.StatusNotFound,
 		})
+	}
+
+	question.CalculateScore()
+	if question.Answers != nil {
+		for i := range *question.Answers {
+			(*question.Answers)[i].CalculateScore()
+		}
 	}
 
 	return c.JSON(http.StatusOK, httpModels.BaseResponse{

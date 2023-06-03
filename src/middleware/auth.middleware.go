@@ -20,7 +20,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		authHeader := c.Request().Header.Get("Authorization")
 		// Check if the header value is empty or does not start with "Bearer "
 		authHeaders := strings.Split(authHeader, " ")
-		if (len(authHeaders) < 2 || authHeaders[0] != "Bearer" || len(strings.Split(authHeaders[1], ".")) < 3) {
+		if len(authHeaders) < 2 || authHeaders[0] != "Bearer" || len(strings.Split(authHeaders[1], ".")) < 3 {
 			panic(utils.PanicPayload{
 				Message: "Access Denied, access token required",
 				HttpStatus: http.StatusUnauthorized,
@@ -47,7 +47,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Check session expiration
-		if (session.ExpiredAt.Unix() <= time.Now().Unix()) {
+		if session.ExpiredAt.Unix() <= time.Now().Unix() {
 			session.DeletedBy = &claims.UserID
 			session.DeletedName = claims.Name
 			session.DeletedFrom = "Auth Middleware"
@@ -59,7 +59,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Make sure session still active
-		if (!session.IsActive) {
+		if !session.IsActive {
 			panic(utils.PanicPayload{
 				Message: INVALID_SESSION,
 				HttpStatus: http.StatusUnauthorized,
@@ -67,7 +67,7 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Make sure user still active
-		if (!session.User.IsActive) {
+		if !session.User.IsActive {
 			panic(utils.PanicPayload{
 				Message: "Your account inactive, please contact web administrator",
 				HttpStatus: http.StatusUnauthorized,
@@ -86,7 +86,7 @@ func ApiKeyMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		defer utils.DeferHandler(c)
 		apiKey := c.Request().Header.Get("x-api-key")
-		if (apiKey == "") {
+		if apiKey == "" {
 			panic(utils.PanicPayload{
 				Message: "Please provide API Key",
 				HttpStatus: http.StatusUnauthorized,

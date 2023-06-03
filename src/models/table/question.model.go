@@ -29,6 +29,7 @@ type Question struct {
 	Answers 				*[]Answer						`json:"answers,omitempty"`
 	Comments 				*[]QuestionComment	`json:"comments,omitempty"`
 	Votes 					*[]QuestionVote			`json:"votes,omitempty"`
+	Score						int32							`json:"score" gorm:"-"`
 	BaseModelAudit
 }
 
@@ -52,4 +53,23 @@ func (s *Question) SoftDelete() error {
 		"deleted_name",
 		"deleted_from",
 	).Updates(s).Error
+}
+
+func (q *Question) CalculateScore() {
+	var upVotes, downVotes int32
+	if q.Votes != nil {
+		for _, vote := range *q.Votes {
+			if vote.VoteType == "up" {
+				upVotes++
+			} else if vote.VoteType == "down" {
+				downVotes++
+			}
+		}
+	}
+	// Calculate score based on the number of upVotes and downVotes
+	score := (upVotes * 5) - (downVotes * 2)    
+	if score < 0 {
+		score = 0
+	}
+	q.Score = score
 }

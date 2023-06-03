@@ -34,7 +34,7 @@ func TagStore(c echo.Context) error {
 	tag.CreatedName = session.User.FullName
 	tag.CreatedFrom = c.Request().Header.Get("x-api-key")
 	result := database.Conn.Create(&tag)
-	if (result.Error != nil) {
+	if result.Error != nil {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
 			HttpStatus: http.StatusBadRequest,
@@ -51,7 +51,7 @@ func TagShow(c echo.Context) error {
 	defer utils.DeferHandler(c)
 	var tag models.Tag
 	err := database.Conn.First(&tag, "id = ?", c.Param("id"))
-	if (err.Error != nil) {
+	if err.Error != nil {
 		panic(utils.PanicPayload{
 			Message: "Tag you'r looking for doesn't exist",
 			HttpStatus: http.StatusNotFound,
