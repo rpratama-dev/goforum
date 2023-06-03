@@ -29,10 +29,27 @@ func QuestionCommentStore(c echo.Context) error {
 		})
 	}
 
+	// Check if question is exist & active
+	var question models.Question
+	result := database.Conn.Preload("Question").Where(map[string]interface{}{
+		"id": questionCommentPayload.QuestionID,
+		"is_active": true,
+	}).First(&question)
+	if (result.Error != nil || !question.IsActive) {
+		message := "Unable to add comment for inactive question"
+		if (result.Error != nil) {
+			message = result.Error.Error()
+		}
+		panic(utils.PanicPayload{
+			Message: message,
+			HttpStatus: http.StatusBadRequest,
+		})
+	}
+
 	// Create new record
 	var questionComment models.QuestionComment
 	questionComment.Append(questionCommentPayload, *session, *c.Get("apiKey").(*string))
-	result := database.Conn.Create(&questionComment)
+	result = database.Conn.Create(&questionComment)
 	if (result.Error != nil) {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
