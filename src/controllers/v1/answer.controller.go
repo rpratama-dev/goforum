@@ -102,11 +102,13 @@ func AnswerUpdate(c echo.Context) error {
 
 	// Start to validate if user already answered this question
 	var answer models.Answer
-	result := database.Conn.Preload("Question").Where(map[string]interface{}{
-		"question_id": answerPayload.QuestionID,
-		"user_id": session.User.ID,
-		"id": answerPayload.AnswerID,
-	}).First(&answer)
+	result := database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"question_id": answerPayload.QuestionID,
+			"user_id": session.User.ID,
+			"id": answerPayload.AnswerID,
+		}).First(&answer)
 	if (result.Error != nil || !answer.Question.IsActive || answer.IsTheBest) {
 		message := "Can't change answer for inactive question"
 		if (answer.IsTheBest) {
@@ -162,15 +164,21 @@ func AnswerPatch(c echo.Context) error {
 
 	// Start to validate if user already answered this question
 	var answer models.Answer
-	result := database.Conn.Preload("Question").Where(map[string]interface{}{
-		"question_id": patchPayload.QuestionID,
-		"id": patchPayload.AnswerID,
-	}).First(&answer)
+	result := database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"question_id": patchPayload.QuestionID,
+			"id": patchPayload.AnswerID,
+		}).First(&answer)
 
 	// Only user created question can mark as the best answer
-	if result.Error == nil && answer.Question.UserID != session.User.ID {
+	if result.Error == nil || answer.Question.UserID != session.User.ID {
+		message := "only the question owner can choose the best answer"
+		if (result.Error == nil) {
+			message = result.Error.Error()
+		}
 		panic(utils.PanicPayload{
-			Message: "only the question owner can choose the best answer",
+			Message: message,
 			HttpStatus: http.StatusUnauthorized,
 		})
 	}
@@ -180,7 +188,7 @@ func AnswerPatch(c echo.Context) error {
 		if (answer.IsTheBest) {
 			message = "You'r answer already mark as the best, so you can't edit"
 		} else if result.Error != nil {
-			message = result.Error.Error() 
+			message = result.Error.Error()
 		}
 		panic(utils.PanicPayload{
 			Message: message,

@@ -90,11 +90,13 @@ func QuestionCommentUpdate(c echo.Context) error {
 
 	// Check if question is exist & active
 	var questionComment models.QuestionComment
-	result := database.Conn.Preload("Question").Where(map[string]interface{}{
-		"id": questionCommentPayload.CommentID,
-		"question_id": questionCommentPayload.QuestionID,
-		"is_active": true,
-	}).First(&questionComment)
+	result := database.Conn.
+		Preload("Question").
+		Where(map[string]interface{}{
+			"id": questionCommentPayload.CommentID,
+			"question_id": questionCommentPayload.QuestionID,
+			"is_active": true,
+		}).First(&questionComment)
 	if (result.Error != nil || !questionComment.Question.IsActive) {
 		message := "Unable to update comment for inactive question"
 		if (result.Error != nil) {

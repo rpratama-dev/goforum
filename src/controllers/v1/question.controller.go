@@ -13,13 +13,15 @@ import (
 
 func UserQuestionIndex(c echo.Context) error {
 	defer utils.DeferHandler(c)
-
 	session := c.Get("session").(*models.Session)
 	var questions []models.Question
-	result := database.Conn.Preload("Tags").Preload("User").Where(map[string]interface{}{
-		"user_id": session.UserID.String(),
-		"is_active": true,
-	}).Find(&questions)
+	result := database.Conn.
+		Preload("Tags").
+		Preload("User").
+		Where(map[string]interface{}{
+			"user_id": session.UserID.String(),
+			"is_active": true,
+		}).Find(&questions)
 
 	if (result.Error != nil) {
 		panic(utils.PanicPayload{
@@ -87,7 +89,10 @@ func UserQuestionStore(c echo.Context) error {
 
 	// Output the created question with tags & user
 	var savedQuestion models.Question
-	database.Conn.Preload("Tags").Preload("User").First(&savedQuestion, question.ID)
+	database.Conn.
+		Preload("Tags").
+		Preload("User").
+		First(&savedQuestion, question.ID)
 
 	return c.JSON(http.StatusCreated, httpModels.BaseResponse{
 		Message: "Success create question by user",
@@ -107,11 +112,14 @@ func UserQuestionShow(c echo.Context) error {
 	}
 
 	var question models.Question
-	result := database.Conn.Preload("Tags").Preload("User").Where(map[string]interface{}{
-		"id": c.Param("id"),
-		"user_id": session.UserID.String(),
-		"is_active": true,
-	}).First(&question)
+	result := database.Conn.
+		Preload("Tags").
+		Preload("User").
+		Where(map[string]interface{}{
+			"id": c.Param("id"),
+			"user_id": session.UserID.String(),
+			"is_active": true,
+		}).First(&question)
 
 	// Check if failed to create question
 	if (result.Error != nil) {
@@ -146,11 +154,14 @@ func UserQuestionUpdate(c echo.Context) error {
 
 	// Find Question
 	var question models.Question
-	result := database.Conn.Preload("Tags").Preload("User").Where(map[string]interface{}{
-		"id": questionId,
-		"user_id": session.UserID.String(),
-		"is_active": true,
-	}).First(&question)
+	result := database.Conn.
+		Preload("Tags").
+		Preload("User").
+		Where(map[string]interface{}{
+			"id": questionId,
+			"user_id": session.UserID.String(),
+			"is_active": true,
+		}).First(&question)
 	if (result.Error != nil) {
 		panic(utils.PanicPayload{
 			Message: result.Error.Error(),
@@ -183,7 +194,7 @@ func UserQuestionUpdate(c echo.Context) error {
 	}
 
 	// Remove the existing tags from the question
-	if (len(*question.Tags) > 0) {
+	if (question.Tags != nil && len(*question.Tags) > 0) {
 		database.Conn.Model(&question).Association("Tags").Delete(question.Tags)
 	}
 
